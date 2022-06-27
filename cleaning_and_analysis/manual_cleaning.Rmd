@@ -1,0 +1,2378 @@
+---
+title: "Manual Cleaning"
+output: html_document
+date: '2022-06-27'
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(tidyverse)
+library(ggpubr)
+library(mgcv)
+library(qgam)
+
+library(tseries) # for autocorrelation function 
+
+
+library("grid")
+library("ggplotify")
+
+```
+
+
+
+```{R}
+
+# original data
+setwd("/Users/benjaminsteinhart/Desktop/image_seg/results/full_output_water_2part/")
+
+files <- dir(path = "/Users/benjaminsteinhart/Desktop/image_seg/results/full_output_water_2part/",pattern = "*.csv")
+
+
+original_start <- files %>%
+  map(read_csv) %>%    # read in all the files individually, using
+                       # the function read_csv() from the readr package
+  reduce(rbind) 
+
+original_start$timeid = substr(original_start$Image, 1, 11)
+original_start$frame = parse_number(substr(original_start$Image, 20, 28))
+
+# if fixed in the program, can delete this
+original_start$TimeR = original_start$TimeR - original_start$Time # right eye segmented after left but time was not reset so subtracting that time here to get true right time 
+
+# formatting into long format
+# center x coordinate for right and left eye
+centerx = original_start %>% select(Image, centerx, centerxR) %>% pivot_longer(cols = c("centerx", "centerxR"), names_to ="eye", values_to = "centerx") %>% mutate(eye = if_else(eye == "centerx","Left", "Right"))
+
+# center y coordinate for right and left eye
+centery = original_start %>% select(Image, centery, centeryR, frame, timeid) %>% pivot_longer(cols = c("centery", "centeryR"), names_to ="eye", values_to = "centery") %>% mutate(eye = if_else(eye == "centery","Left", "Right"))
+
+# time for right and left eye
+time = original_start %>% select(Image, Time, TimeR) %>% pivot_longer(cols = c("Time", "TimeR"), names_to ="eye", values_to = "time") %>% mutate(eye = if_else(eye == "Time","Left", "Right"))
+
+# major axis size right and left eye
+major_axis = original_start %>% select(Image, major_axis, major_axisR) %>% pivot_longer(cols = c("major_axis", "major_axisR"), names_to ="eye", values_to = "major_axis") %>% mutate(eye = if_else(eye == "major_axis","Left", "Right"))
+
+# minor axis size right and left eye
+minor_axis = original_start %>% select(Image, minor_axis, minor_axisR) %>% pivot_longer(cols = c("minor_axis", "minor_axisR"), names_to ="eye", values_to = "minor_axis") %>% mutate(eye = if_else(eye == "minor_axis","Left", "Right"))
+
+# eccentricity size right and left eye
+eccentricity = original_start %>% select(Image, eccentricity, eccentricityR) %>% pivot_longer(cols = c("eccentricity", "eccentricityR"), names_to ="eye", values_to = "eccentricity") %>% mutate(eye = if_else(eye == "eccentricity","Left", "Right"))
+
+## Joining long data sets
+
+original = left_join(centerx, centery) %>% left_join(.,time) %>% left_join(.,major_axis) %>% left_join(.,minor_axis) %>% left_join(.,eccentricity) 
+
+original = original %>% select(timeid, frame, eye, time, major_axis, minor_axis, eccentricity, centerx, centery)
+
+# factoring eye
+original$eye = factor(original$eye)
+
+## Creating percent change variable
+
+
+original = original %>% group_by(timeid, eye) %>%  mutate(initial =first(major_axis)) %>% ungroup()
+
+original = original %>% group_by(timeid, eye) %>% mutate(percent_change = ((major_axis - initial) / initial)*100) %>% ungroup()
+
+```
+
+
+```{r}
+original = original %>% select(-percent_change)
+
+original = original %>% select(-initial)
+
+```
+
+
+
+```{r}
+# cleaned data
+
+set.seed(27)
+# load pupils data 
+
+pupils = read_csv(here::here("data", "pupils.csv"))
+
+```
+
+
+# Notes:
+
+Identified participants that may need cleaning by looking at ACF and also jumps (where jump is classified if absolute value of difference between two consecutive points is greater than 10. )
+
+* acf below .7: 90 out of 201
+
+* Jumps: 37 out of 201
+
+* total 90 unique (all jumps also in poor acf.)
+
+* Exact count of how many required cleaning? (TBD: 40-50)
+
+# Flagging participants who may need to be cleaned  manually 
+
+## Calculating ACF and N missing for each particpant - time point prior to cleaning 
+
+```{r, eval = FALSE}
+
+## probably want to check between 3 and 6 standard deviations away 
+
+## specify nrow of matrix
+
+# nrow = len(timeid)
+
+participant_id = original$timeid %>% unique()
+
+storage_matrix = matrix(NA, nrow = length(participant_id)*2, ncol = 4)
+
+eyes = c("Left", "Right")
+
+count = 0
+for (iter_eye in 1:2){
+  for (iter1 in 1:length(participant_id)){
+    count = count + 1
+    left_eye = original %>% filter(timeid == participant_id[iter1], eye == eyes[iter_eye]) #creating temporary data frame
+    left_eye = left_eye[complete.cases(left_eye),]
+  #
+    if (nrow(left_eye) > 1){
+      ## taking complete cases from temp data
+  
+    acf_no_clean = round(acf(left_eye$major_axis, pl = FALSE)$acf[2],4)
+  
+    n_obs = nrow(left_eye) # number of data points in original
+  
+    storage_matrix[count, ] = c(participant_id[iter1], as.numeric(acf_no_clean), n_obs, eyes[iter_eye])
+    }
+  
+    if (nrow(left_eye)<1){
+        storage_matrix[iter1, ] = c(participant_id[count], "NA", nrow(left_eye), eyes[iter_eye])
+    }
+  }
+}
+
+storage_matrix = as.data.frame(storage_matrix)
+
+storage_matrix = rename(storage_matrix, timeid = V1)
+storage_matrix = rename(storage_matrix, acf_original = V2)
+storage_matrix = rename(storage_matrix, completed_obs = V3)
+storage_matrix = rename(storage_matrix, eyes = V4)
+
+
+storage_matrix$acf_original = as.numeric(storage_matrix$acf_original)
+
+storage_matrix %>% skimr::skim()
+
+#########
+#########
+#########
+#########
+# participant_id = pupils$timeid %>% unique()
+# 
+# storage_matrix = matrix(NA, nrow = length(participant_id)*2, ncol = 4)
+# 
+# eyes = c("Left", "Right")
+# 
+# count = 0
+# for (iter_eye in 1:2){
+#   for (iter1 in 1:length(participant_id)){
+#     count = count + 1
+#     left_eye = pupils %>% filter(timeid == participant_id[iter1], eye == eyes[iter_eye]) #creating temporary data frame
+#     left_eye = left_eye[complete.cases(left_eye),]
+#   #
+#     if (nrow(left_eye) > 1){
+#       ## taking complete cases from temp data
+#   
+#     acf_no_clean = round(acf(left_eye$major_axis, pl = FALSE)$acf[2],4)
+#   
+#     n_obs = nrow(left_eye) # number of data points in original
+#   
+#     storage_matrix[count, ] = c(participant_id[iter1], as.numeric(acf_no_clean), n_obs, eyes[iter_eye])
+#     }
+#   
+#     if (nrow(left_eye)<1){
+#         storage_matrix[iter1, ] = c(participant_id[count], "NA", nrow(left_eye), eyes[iter_eye])
+#     }
+#   }
+# }
+# 
+# storage_matrix = as.data.frame(storage_matrix)
+# 
+# storage_matrix = rename(storage_matrix, timeid = V1)
+# storage_matrix = rename(storage_matrix, acf_original = V2)
+# storage_matrix = rename(storage_matrix, completed_obs = V3)
+# storage_matrix = rename(storage_matrix, eyes = V4)
+# 
+# 
+# storage_matrix$acf_original = as.numeric(storage_matrix$acf_original)
+# 
+# storage_matrix %>% skimr::skim()
+
+#### afc for cleaned
+# 
+# 
+# participant_id = pupils$timeid %>% unique()
+# 
+# storage_matrix = matrix(NA, nrow = length(participant_id)*2, ncol = 4)
+# 
+# eyes = c("Left", "Right")
+# 
+# count = 0
+# for (iter_eye in 1:2){
+#   for (iter1 in 1:length(participant_id)){
+#     count = count + 1
+#     left_eye = pupils %>% filter(timeid == participant_id[iter1], eye == eyes[iter_eye]) #creating temporary data frame
+#     left_eye = left_eye[complete.cases(left_eye),]
+#   #
+#     if (nrow(left_eye) > 1){
+#       ## taking complete cases from temp data
+#   
+#     acf_no_clean = round(acf(left_eye$major_axis, pl = FALSE)$acf[2],4)
+#   
+#     n_obs = nrow(left_eye) # number of data points in original
+#   
+#     storage_matrix[count, ] = c(participant_id[iter1], as.numeric(acf_no_clean), n_obs, eyes[iter_eye])
+#     }
+#   
+#     if (nrow(left_eye)<1){
+#         storage_matrix[iter1, ] = c(participant_id[count], "NA", nrow(left_eye), eyes[iter_eye])
+#     }
+#   }
+# }
+# 
+# storage_matrix = as.data.frame(storage_matrix)
+# 
+# storage_matrix = rename(storage_matrix, timeid = V1)
+# storage_matrix = rename(storage_matrix, acf_original = V2)
+# storage_matrix = rename(storage_matrix, completed_obs = V3)
+# storage_matrix = rename(storage_matrix, eyes = V4)
+# 
+# 
+# storage_matrix$acf_original = as.numeric(storage_matrix$acf_original)
+# 
+# storage_matrix %>% skimr::skim()
+```
+
+
+
+
+## Flagging those who have acf below 0.7
+
+```{r, eval = FALSE}
+acf_check = storage_matrix %>% filter(acf_original <=0.7) %>% select(timeid) %>% pull()
+
+acf_check %>% length()
+```
+
+## Flagging those who little or no predicted pupil sizes (below 400)
+
+```{r, eval = FALSE}
+no_obs_check = original %>% group_by(timeid, eye) %>% mutate(completed_obs = n()) %>% ungroup() %>%  filter(completed_obs <400) %>% select(timeid)  %>% unique() %>% pull()
+
+no_obs_check
+
+```
+
+## Flagging those that had lots of big jumps 
+
+
+```{R, eval = FALSE}
+original = original %>% group_by(timeid, eye) %>% mutate(lag_major = lag(major_axis), jump = major_axis - lag_major) %>% ungroup()
+
+
+jump_check  = original %>% filter(abs(jump) > 10) %>% group_by(timeid, eye) %>% mutate(jump_count = n()) %>% ungroup() %>% select(timeid, eye, jump_count) %>% unique() %>% filter(jump_count>=50) %>%  select(timeid) %>% unique() %>% pull()
+
+jump_check %>% length()
+
+```
+
+
+# Plots of potentially messy graphs
+
+
+# ACF Messy
+
+```{r, eval = FALSE}
+for (i in 1:length(acf_check)){
+x = original %>% filter(timeid == acf_check[i], eye == "Left") %>% select(major_axis) %>% pull()
+x =x[!is.na(x)]
+y = acf(x, pl = FALSE)$acf[2]
+
+plot_major = ggplot(original %>% filter(timeid == acf_check[i], eye == "Left"), aes(x = frame, y = major_axis)) + geom_point() + ylab("Major Axis Size") + labs(title = paste("Original : ACF = ",y),
+              subtitle = paste("N = ",length(x)))
+
+plot_major_cleanQ = ggplot(pupils %>% filter(timeid ==acf_check[i], eye == "Left"), aes(x = frame, y = major_axis)) + geom_point() + ylab("Major Axis Size") + geom_line(aes(y = pupils %>% filter(timeid == acf_check[i], eye == "Left") %>% select(predicted) %>% pull()), color = "red")  
+
+x = original %>% filter(timeid == acf_check[i], eye == "Right") %>% select(major_axis) %>% pull()
+x =x[!is.na(x)]
+y = acf(x, pl = FALSE)$acf[2]
+
+plot_major_right = ggplot(original %>% filter(timeid == acf_check[i], eye == "Right"), aes(x = frame, y = major_axis)) + geom_point() + ylab("Major Axis Size") + labs(title = paste("Original : ACF = ",y),
+              subtitle = paste("N = ",length(x)))
+
+plot_major_cleanQ_right = ggplot(pupils %>% filter(timeid ==acf_check[i], eye == "Right"), aes(x = frame, y = major_axis)) + geom_point() + ylab("Major Axis Size") + geom_line(aes(y = pupils %>% filter(timeid == acf_check[i], eye == "Right") %>% select(predicted) %>% pull()), color = "red")  
+
+plot = ggarrange(plot_major, plot_major_cleanQ, plot_major_right, plot_major_cleanQ_right)
+
+
+print(annotate_figure(plot, top = text_grob(acf_check[i],
+               color = "red", face = "bold", size = 14)))
+}
+```
+
+
+# No Observations
+
+```{r, eval = FALSE}
+for (i in 1:length(no_obs_check)){
+
+x = original %>% filter(timeid == no_obs_check[i], eye == "Left") %>% select(major_axis) %>% pull()
+x =x[!is.na(x)]
+y = acf(x, pl = FALSE)$acf[2]
+
+plot_major = ggplot(original %>% filter(timeid == no_obs_check[i], eye == "Left"), aes(x = frame, y = major_axis)) + geom_point() + ylab("Major Axis Size") 
+         
+
+print(annotate_figure(plot_major, top = text_grob(no_obs_check[i], 
+               color = "red", face = "bold", size = 14)))
+}
+```
+
+# Jumps
+
+```{r, eval = FALSE}
+for (i in 1:length(jump_check)){
+
+
+x = original %>% filter(timeid == jump_check[i], eye == "Left") %>% select(major_axis) %>% pull()
+x =x[!is.na(x)]
+y = round(acf(x, pl = FALSE)$acf[2],3)
+
+plot_major = ggplot(original %>% filter(timeid == jump_check[i], eye == "Left"), aes(x = frame, y = major_axis)) + geom_point() + ylab("Major Axis Size") + labs(title = paste("Left Eye: ACF = ",y),
+              subtitle = paste("N = ",length(x)))
+
+plot_major_cleanQ = ggplot(pupils %>% filter(timeid ==jump_check[i], eye == "Left"), aes(x = frame, y = major_axis)) + geom_point() + ylab("Major Axis Size") + geom_line(aes(y = pupils %>% filter(timeid == jump_check[i], eye == "Left") %>% select(predicted) %>% pull()), color = "red")  + ggtitle("Left Cleaned")
+
+x = original %>% filter(timeid == jump_check[i], eye == "Right") %>% select(major_axis) %>% pull()
+x =x[!is.na(x)]
+y = round(acf(x, pl = FALSE)$acf[2],3)
+
+plot_major_right = ggplot(original %>% filter(timeid == jump_check[i], eye == "Right"), aes(x = frame, y = major_axis)) + geom_point() + ylab("Major Axis Size") + labs(title = paste("Right Eye: ACF = ",y),
+              subtitle = paste("N = ",length(x)))
+
+plot_major_cleanQ_right = ggplot(pupils %>% filter(timeid ==jump_check[i], eye == "Right"), aes(x = frame, y = major_axis)) + geom_point() + ylab("Major Axis Size") + geom_line(aes(y = pupils %>% filter(timeid == jump_check[i], eye == "Right") %>% select(predicted) %>% pull()), color = "red") + ggtitle("Right Cleaned")  
+
+plot = ggarrange(plot_major, plot_major_cleanQ, plot_major_right, plot_major_cleanQ_right)
+
+
+print(annotate_figure(plot, top = text_grob(jump_check[i],
+               color = "red", face = "bold", size = 14)))
+}
+```
+
+
+# To manually clean 
+
+## Removal function
+
+```{r}
+
+## Should create a function here 
+removal_function <- function(removal, timeid_rem, eye_rem){
+  left_eye = removal %>% filter(timeid == timeid_rem, eye == eye_rem, outlier_manual == "0")
+  
+  left_eye = left_eye %>% select(timeid,frame, major_axis, eye)
+  left_eye = left_eye[complete.cases(left_eye),] ## taking complete cases from temp data 
+  quantile_gam_left = qgam(major_axis~ s(frame, k=25, bs="cs"),
+										data = left_eye,
+										qu = 0.5) # fit qgam
+  p <- predict(quantile_gam_left, type = "link", se.fit = TRUE)# predicted values
+  left_eye$predicted = p$fit
+
+  pupils = full_join(pupils, left_eye)
+  
+  return(pupils)
+}
+
+```
+
+
+
+## 001-004post
+
+```{R}
+
+## Removing this set from pupils 
+
+id_temp = "001-004post"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  frame < 100 & major_axis < 130 ~ "1",
+  (frame >=100 & frame <=300) & major_axis < 123 ~ "1",
+  TRUE ~ "0"
+))
+
+
+
+## Refit points with cleaned
+
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+
+## 001-013post
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-013post"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  (frame >=175) & major_axis < 70 ~ "1",
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+## 67pre2 
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-067pre2"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+   major_axis < 90 ~ "1",
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+
+
+temp = pupils %>% filter(timeid == id_temp ,eye == eye_temp)
+
+
+fit <- qgam(major_axis~ s(frame, k=30, bs="cs"), data=temp, qu = 0.5)
+
+new_data = data.frame(frame = seq(0, max(temp$frame), length.out = nrow(temp)))
+
+new_data$yhat2 = predict(fit, newdata = new_data)
+
+```
+
+```{r}
+
+plot1 = ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point(size=1.1) + ylab("Major Axis Size") + ggtitle("Original")+ 
+  theme(axis.title = element_text(size = 12), axis.text = element_text(size = 7))+ 
+    theme(plot.title = element_text(size = 12, face = "bold")) +
+  scale_x_continuous(name="frame", breaks= seq(0, 610, 100))+ 
+  theme(plot.title = element_text(hjust = 0.5))
+
+plot2 = ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point(size = 1.1) + ylab("Major Axis Size") + ggtitle("Manually Cleaned")+ 
+  theme(axis.title = element_text(size = 12), axis.text = element_text(size = 7))+ 
+    theme(plot.title = element_text(size = 12, face = "bold")) +
+  scale_x_continuous(name="frame", breaks= seq(0, 610, 100))+ 
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+plot3 = ggplot(temp, aes(x = frame, y = major_axis)) + geom_point(size = 1.1) + geom_line(aes(x = new_data$frame, y = new_data$yhat2), colour = "red", size = 1) + 
+  ylab("Major Axis Size") +
+  ggtitle("Cleaned and Refit") +
+  theme(axis.title = element_text(size = 12), axis.text = element_text(size = 7))+
+    theme(plot.title = element_text(size = 12, face = "bold")) +
+  scale_x_continuous(name="frame", breaks= seq(0, 610, 100))+
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+ggarrange(plot1, plot2, plot3, ncol = 3, nrow = 1)
+
+ggsave("/Users/benjaminsteinhart/Desktop/image_seg/reports/figures_thesis/manual_cleaning.png")
+
+```
+
+## 001-013pre2
+
+** Left Eye 
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-013pre2"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  major_axis >120 ~ "1",
+  major_axis < 75 ~ "1",
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+
+** Right Eye 
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-013pre2"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  major_axis >120 ~ "1",
+  major_axis < 75 ~ "1",
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+
+
+## 001-030post
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-030post"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  major_axis >155 ~ "1",
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+## 001-014post
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-014post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  major_axis < 90 ~ "1",
+  major_axis >122 ~ "1",
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+## 16post ; Removing Right eye as it is difficult to discern true curve
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-016post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+## 18post
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-018post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  major_axis >140 ~ "1",
+  major_axis < 100 ~ "1",
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-018post"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  frame > 500 & major_axis >127 ~ "1",
+  major_axis < 100 ~ "1",
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+## 27post
+
+** removing left eye as true curve is difficult to discern 
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-027post"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+
+## 28pre2
+
+** removing both eyes
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-028pre2"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+
+id_temp = "001-028pre2"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+## 34pre2
+
+
+** Left Eye 
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-034pre2"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+## 72 post ; Removal of Right eye 
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-072post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+## 57  post 
+; removal of both eyes 
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-057post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-057post"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+
+## 72 pre2
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-072pre2"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  frame > 180 & major_axis > 112.5 ~ "1",
+    frame > 400 & major_axis < 75 ~ "1",
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+
+## 77 pre2
+
+** Left Eye 
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-077pre2"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  major_axis > 160 ~ "1",
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+## 88 post ;
+
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-088post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  major_axis > 160 ~ "1",
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+
+## 117post remove one eye 
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-117post"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+
+## 004 post
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-004post"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  major_axis <122 ~ "1",
+  frame > 350 & major_axis <125 ~ "1",
+
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+## 9 post 
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-009post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+ major_axis >120 ~ "1",
+ major_axis <75 ~ "1",
+
+
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+## 9 pre2 
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-009pre2"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  frame < 200 & major_axis >120 ~ "1",
+  frame > 200 & major_axis <85 ~ "1",
+    frame > 400 & major_axis <115 ~ "1",
+
+
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+## 11 post 
+
+
+** Removing left
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-011post"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+* Right Eye 
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-011post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  major_axis >140 ~ "1",
+
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+
+## 65 prost
+
+* removal of right eye 
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-065post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+## 13 pre 2 
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-013pre2"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  major_axis >140 ~ "1",
+  frame > 200 & major_axis <65 ~ "1",
+  major_axis <= 76 ~ "1",
+  (frame > 200 & frame < 310) & major_axis >105 ~ "1",
+
+
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-013pre2"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  major_axis >120 ~ "1",
+  major_axis <= 78 ~ "1",
+    frame < 150 & major_axis <= 100 ~ "1",
+
+
+
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+## 15 post
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-015post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  major_axis <60 ~ "1",
+
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+## 102pre2
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-102pre2"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  frame > 400 & major_axis < 100 ~ "1",
+  frame < 200 & major_axis > 115 ~ "1",
+  major_axis > 125 ~ "1",
+
+
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+## 14 post 
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-014post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  major_axis >120 ~ "1",
+  major_axis <90 ~ "1",
+
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+## 16 post 
+
+* Removing One Eye
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-016post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+## 18 post 
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-018post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  major_axis > 150 ~ "1",
+  major_axis < 100 ~ "1",
+
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+## 19 post 
+
+* Removing Right Eye
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-019post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+## 60 pre2 
+
+
+** removal right eye 
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-060pre2"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+
+* clean left 
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-060pre2"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  major_axis >122 ~ "1",
+
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+
+
+## 61pre2
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-061pre2"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  frame > 300 & major_axis >150 ~ "1",
+  frame > 300 & major_axis <120 ~ "1",
+  frame > 300 & major_axis >145 ~ "1",
+
+    frame > 520 ~ "1",
+
+
+
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+## 21 pre2 
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-021pre2"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  major_axis >135 ~ "1",
+
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+## 34 post ; REMOVE 
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-034post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-034post"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+## 34 pre2 
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-034pre2"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+
+
+## 71 pre 2 / post 
+
+* Removing both 
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-071pre2"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+id_temp = "001-071pre2"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+
+## Removing this set from pupils 
+
+id_temp = "001-071post"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+id_temp = "001-071post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+
+## 73 post 
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-073post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  frame > 150 & major_axis >75 ~ "1",
+  major_axis >120 ~ "1",
+
+
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+
+## 74 post 
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-074post"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  major_axis < 54 ~ "1",
+  major_axis > 100 ~ "1",
+
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+
+temp = pupils %>% filter(timeid == id_temp ,eye == eye_temp)
+
+
+fit <- qgam(major_axis~ s(frame, k=35, bs="ad"), data=temp, qu = 0.5)
+
+new_data = data.frame(frame = seq(0, 600, length.out = nrow(temp)))
+
+new_data$yhat2 = predict(fit, newdata = new_data)
+
+ggplot(temp, aes(x = frame, y = major_axis)) + geom_point() + geom_line(aes(y = new_data$yhat2), colour = "red", size = 1.2) 
+
+# + 
+#   ylab("Major Axis Size") + 
+#   ggtitle(paste0("Cleaned ACF: ", as.character(acf2))) + 
+#   theme(axis.title = element_text(size = 30), axis.text = element_text(size = 30))+ 
+#     theme(plot.title = element_text(size = 30, face = "bold")) +
+#   scale_x_continuous(name="frame", breaks= seq(0, 610, 100))+ 
+#   theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+
+## 78 post 
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-078post"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  frame > 200 &  major_axis >125 ~ "1",
+  major_axis < 82 ~ "1",
+  (frame > 300 & frame < 400) & major_axis >115 ~ "1",
+
+
+
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+
+** Right eye  ; removal
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-078post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+## 84post
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-084post"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+id_temp = "001-084post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+
+## 95 post ; removal
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-095post"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+
+## 95pre 2 
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-095pre2"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+
+## 005pre2 removal right eye
+
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-005pre2"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+## 004pre2 
+
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-004pre2"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  major_axis < 105 ~ "1",
+  frame > 400 &  major_axis < 120 ~ "1",
+  frame > 250 &  major_axis < 109 ~ "1",
+  major_axis > 140 ~ "1",
+  (frame > 150 & frame < 360) & major_axis > 120 ~ "1",
+  frame > 300 &  major_axis >134  ~ "1",
+
+
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point()
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp, eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point()
+
+```
+
+## 25 post 
+
+
+
+** removing left eye as true curve is difficult to discern 
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-025post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp,eye == eye_temp), aes(x = frame, y = major_axis)) + geom_point()
+
+```
+
+
+# Post manual verification meeting 
+
+
+## Participant 1 
+
+* Ben's thoughts on keep or discard: Probably would remove both right and left eye here. Possible to keep one or both but would be a rougher estimate.
+
+* Suspected Reason: Pretty constant blinking
+
+* Decision: Remove both 
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-034post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+id_temp = "001-034post"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+
+
+```
+
+
+
+## Participant 2 
+
+* Ben's thoughts on keep or discard: Both eyes might be salvageable but probably. Would at the least keep the left eye
+
+* Suspected Reason: Very small pupil size makes for difficult estimates
+
+* Decision: Keep both eyes
+
+
+```{r}
+# ** Left Eye 
+
+## Removing this set from pupils 
+
+id_temp = "001-074pre2"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp), aes(x = frame, y = major_axis)) + geom_point() + facet_wrap(~eye) + ggtitle("Original Points") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  frame > 400 & major_axis < 55 ~ "1",
+  major_axis > 110 ~ "1",
+  frame > 500 & major_axis < 80 ~ "1",
+  frame < 180 & major_axis < 70 ~ "1",
+
+
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point() + ggtitle("Left Eye Post Cleaning") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point() + ggtitle("Smoothed Points") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+
+```{r}
+id_temp = "001-074pre2"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  frame > 400 & major_axis < 55 ~ "1",
+  frame > 450 & major_axis < 70 ~ "1",
+  frame < 175 & major_axis < 80 ~ "1",
+  frame > 375 & major_axis < 60 ~ "1",
+  major_axis > 120 ~ "1",
+
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point() + ggtitle("Right Eye Post Cleaning") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point() + ggtitle("Smoothed Points") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+
+
+## Participant 3
+
+* Ben's thoughts on keep or discard: Left eye might be salvageable but probably throw out both eyes
+
+* Suspected Reason: Very heavy eye liner creating false estimates for size/center of pupil
+
+* Decision: drop both eyes
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-084post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+id_temp = "001-084post"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+
+```
+
+
+
+## Participant 4
+
+* Ben's thoughts on keep or discard: Left eye should be removed. Right eye should probably be removed.
+
+* Suspected Reason: Pretty much constant blinking once the test begins
+
+* Decision: Drop both eyes
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-095post"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+id_temp = "001-095post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+
+```
+
+
+
+
+## Participant 5
+
+
+* Ben's thoughts on keep or discard: Should be able to keep left eye. The points that match with the right eye are pretty visible and would make a good estimate for true curve.
+
+* Suspected Reason: Iris on the left eye is slightly darker and the eye lashes are much darker, likely throwing off the distribution in color. 
+
+**  Decision: Keep both eyes
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-013post"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp), aes(x = frame, y = major_axis)) + geom_point() + facet_wrap(~eye) + ggtitle("Original Points") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  frame > 190 & major_axis < 70 ~ "1",
+
+
+
+  TRUE ~ "0"
+))
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point() + ggtitle("Left Eye Post Cleaning") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point() + ggtitle("Smoothed Points") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+```
+
+
+## Participant 6
+
+* Tricky for left eye
+
+* Ben's thoughts on keep or discard:  A Lot of variation in the right eye, may be worth just removing. If Keep, it seems the top line is probably closer to the truth, higher density there and closer matches the right eye
+
+* Suspected Reason: Quite a bit of blinking and darker iris
+
+* Decision: Keep right eye only 
+
+
+```{r}
+
+id_temp = "001-061post"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+```
+
+
+
+## Participant 7
+
+
+* Ben's thoughts on keep or discard:  A Lot of variation in the right eye, may be worth just removing. 
+
+* Suspected Reason: Quite a bit of blinking and darker iris
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-087pre2"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+```
+
+## 60 post 
+
+** Ask Julia ; wild little intermission
+
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-060post"
+eye_temp = "Left"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+ggplot(original %>% filter(timeid == id_temp), aes(x = frame, y = major_axis)) + geom_point() + facet_wrap(~eye) + ggtitle("Original Points") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp)
+
+mean_left = removal_temp %>% filter(frame < 180) %>% select(major_axis) %>% pull() %>% mean()
+
+
+removal_temp = removal_temp %>% mutate(major_axis = case_when(
+  frame >185 & frame < 290  ~ mean_left ,
+  TRUE ~ major_axis
+))
+removal_temp = removal_temp %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  major_axis < 75  ~ "1",
+  TRUE ~ "0"
+))
+
+# going to imput value (participant closed their eye prior to test beginning for extended period of time but pupil size was fairly constant beforehand)
+
+
+
+
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point() + ggtitle("Left Eye Post Cleaning") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point() + ggtitle("Smoothed Points") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+```
+
+```{r}
+
+## Removing this set from pupils 
+
+id_temp = "001-060post"
+eye_temp = "Right"
+
+pupils = pupils %>% filter((timeid != id_temp | eye != eye_temp))
+
+```
+
+```{r}
+removal_temp = original %>% filter(timeid == id_temp,eye == eye_temp)
+
+mean_right = removal_temp %>% filter(frame < 180) %>% select(major_axis) %>% pull() %>% mean()
+
+for(i in 190:270){
+  removal_temp[i, "major_axis"] = mean_right
+}
+
+
+removal_temp = removal_temp %>% filter(timeid == id_temp,eye == eye_temp) %>% mutate(outlier_manual = case_when(
+  major_axis < 75  ~ "1",
+  TRUE ~ "0"
+))
+
+# going to imput value (participant closed their eye prior to test beginning for extended period of time but pupil size was fairly constant beforehand)
+
+
+
+
+ggplot(removal_temp %>% filter(timeid == id_temp ,eye == eye_temp, outlier_manual == "0"), aes(x = frame, y = major_axis)) + geom_point() + ggtitle("Right Eye Post Cleaning") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+```{r}
+pupils = removal_function(removal_temp, id_temp, eye_temp)
+
+ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y = predicted)) + geom_point() + ggtitle("Smoothed Points") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+```
+
+
+
+# Saving Fully Cleaned Data
+
+```{r}
+filename = "pupils_full_clean.csv"
+
+write_csv(pupils, file = here::here("data", filename))
+
+
+```
