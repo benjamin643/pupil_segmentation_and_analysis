@@ -1,0 +1,738 @@
+---
+title: "gee tables"
+output: html_document
+date: '2022-06-27'
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(broom)
+library(emmeans)
+library(ggpubr)
+library(patchwork)
+library(scales)
+library(readxl)
+library(kableExtra)
+library(gee)
+library("geepack")
+library(pracma)
+
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 8,
+  fig.height = 6
+)
+theme_set(theme_bw() + theme(legend.position = "bottom"))
+```
+
+# Read Data 
+
+```{r}
+#scalars <- read_csv("~/Desktop/scalars_trim.csv")
+
+scalars = read_csv("/Users/benjaminsteinhart/Desktop/image_seg/data/scalars_trim.csv") %>%
+  mutate(user_type = factor(user_type, levels = c("non-user", "occasional", "daily")),
+         prepost = factor(time, levels = c("pre2", "post")),
+         eye = factor(eye, levels = c("Left", "Right"))) %>%
+  select(subject_id, user_type, prepost, eye, min_constriction, AUC, completed_obs, duration) %>%
+  arrange(subject_id, prepost, eye)
+
+
+scalars$min_constriction = scalars$min_constriction * (-1)
+```
+
+# Gee models
+
+```{r}
+
+#scalars$prepost = factor(scalars$prepost, levels = c("pre2", "post"))
+#scalars$eye = factor(scalars$eye, levels = c("Left", "Right"))
+
+## Percent Constriction
+min_gee <- geeglm(min_constriction ~ eye + prepost*user_type,
+               data = scalars, 
+               id = factor(subject_id), 
+               family = gaussian,
+               corstr = "independence")
+
+## AUC
+auc_gee <- geeglm(AUC ~ eye + prepost*user_type,
+               data = scalars, 
+               id = factor(subject_id), 
+               family = gaussian,
+               corstr = "independence")
+
+## Auto-correlation
+# acf_gee <- geeglm(acf_original ~ eye + prepost*user_type,
+#                data = scalars, 
+#                id = factor(subject_id), 
+#                family = gaussian,
+#                corstr = "independence")
+
+
+# Completed Obs 
+obs_gee <- geeglm(cbind(completed_obs, duration-completed_obs) ~ eye + prepost*user_type,
+               data = scalars, 
+               id = factor(subject_id), 
+               family = binomial,
+               corstr = "independence")
+
+
+summary(min_gee)
+
+summary(auc_gee)
+
+summary(obs_gee)
+```
+
+
+# Group means 
+
+```{R}
+# Int + right + post + occasional + daily + post*occasional + post*daily
+
+pre_non = c(1, 0, 0, 0, 0, 0, 0)
+pre_occ = c(1, 0, 0, 1, 0, 0, 0)
+pre_daily = c(1, 0, 0, 0, 1, 0, 0)
+
+# Int + right + post + occasional + daily + post*occasional + post*daily
+post_non = c(1, 0, 1, 0, 0, 0, 0)
+post_occ = c(1, 0, 1, 1, 0, 1, 0)
+post_daily = c(1, 0, 1, 0, 1, 0, 1)
+
+## min. constriction means
+coef_min <- summary(min_gee)$coefficients[,1] # coefficients from gee model
+se_min <- summary(min_gee)$coefficients[,2] # Std. Error from gee model
+
+
+## Group Means at pre event for table 3 - min. constriction
+mean_pre_non_min = sum(pre_non*coef_min)
+mean_pre_occ_min = sum(pre_occ*coef_min)
+mean_pre_daily_min = sum(pre_daily*coef_min)
+
+## SE at pre event for table 3 - min. constriction
+se_pre_non_min = sum(pre_non*se_min)
+se_pre_occ_min = sum(pre_occ*se_min)
+se_pre_daily_min = sum(pre_daily*se_min)
+
+## Group Means at post event for table 3 - min. constriction
+mean_post_non_min = sum(post_non*coef_min)
+mean_post_occ_min = sum(post_occ*coef_min)
+mean_post_daily_min = sum(post_daily*coef_min)
+
+## SE at post event for table 3 - min. constriction
+
+se_post_non_min = sum(post_non*se_min)
+se_post_occ_min = sum(post_occ*se_min)
+se_post_daily_min = sum(post_daily*se_min)
+
+#######################################
+############## auc means ################
+#######################################
+
+coef_auc <- summary(auc_gee)$coefficients[,1] # coefficients from gee model
+se_auc <- summary(auc_gee)$coefficients[,2] # coefficients from gee model
+
+## Group Means at pre event for table 3 - AUC
+mean_pre_non_auc = sum(pre_non*coef_auc)
+mean_pre_occ_auc = sum(pre_occ*coef_auc)
+mean_pre_daily_auc = sum(pre_daily*coef_auc)
+
+## Group SE at pre event for table 3 - AUC
+se_pre_non_auc = sum(pre_non*se_auc)
+se_pre_occ_auc = sum(pre_occ*se_auc)
+se_pre_daily_auc = sum(pre_daily*se_auc)
+
+## Group Means at post event for table 3 -AUC
+mean_post_non_auc = sum(post_non*coef_auc)
+mean_post_occ_auc = sum(post_occ*coef_auc)
+mean_post_daily_auc= sum(post_daily*coef_auc)
+
+## Group SE at post event for table 3 - AUC
+se_post_non_auc = sum(post_non*se_auc)
+se_post_occ_auc = sum(post_occ*se_auc)
+se_post_daily_auc = sum(post_daily*se_auc)
+
+
+## completed means
+coef_obs <- exp(summary(obs_gee)$coefficients[,1]) # coefficients from gee model
+se_obs <- exp(summary(obs_gee)$coefficients[,2]) # coefficients from gee model
+
+
+## Group Means at pre event for table 3 - completed observations
+mean_pre_non_obs = sum(pre_non*coef_obs)
+mean_pre_occ_obs = sum(pre_occ*coef_obs)
+mean_pre_daily_obs = sum(pre_daily*coef_obs)
+
+## Group SE at pre event for table 3 - completed observations
+se_pre_non_obs = sum(pre_non*se_obs)
+se_pre_occ_obs = sum(pre_occ*se_obs)
+se_pre_daily_obs = sum(pre_daily*se_obs)
+
+## Group Means at post event for table 3 - completed observations
+mean_post_non_obs = sum(post_non*coef_obs)
+mean_post_occ_obs = sum(post_occ*coef_obs)
+mean_post_daily_obs = sum(post_daily*coef_obs)
+
+## Group SE at post event for table 3 - completed observations
+se_post_non_obs = sum(post_non*se_obs)
+se_post_occ_obs = sum(post_occ*se_obs)
+se_post_daily_obs = sum(post_daily*se_obs)
+
+
+
+###Contrast statements for differences Differences; Post - pre###
+
+
+non_dif = (post_non - pre_non)
+occ_dif = (post_occ - pre_occ)
+daily_dif = (post_daily - pre_daily)
+se_non_dif = sum(non_dif*se_min)
+
+
+
+non_occ_dif = occ_dif - non_dif 
+
+# Non vs daily
+
+non_daily_dif = daily_dif - non_dif 
+
+## Occ vs Daily
+occ_daily_dif =  daily_dif -occ_dif 
+
+
+```
+
+# Functions for estimates and p-values of difference of differecences using contrast statements 
+
+```{r}
+### Function for pairwise difference of differences
+contrast_pair = function(gee_model, contrast_statment, df, lower_tail = FALSE, log_p = FALSE){
+  
+  coef2 <- summary(gee_model)$coefficients[,1] # coefficients from gee model
+  cov2 <- summary(gee_model)$cov.scaled # scaled covariance from gee model
+  contrast_statment.m <- matrix(contrast_statment, byrow = TRUE, 1, 7) # convert contrast statment to 1 by 7 matrix
+
+  contrast_statment_est <- contrast_statment.m%*%coef2 # get estimate of difference from contrast statement * coefficients
+
+  chisq.v <- t(contrast_statment_est)%*%solve(contrast_statment.m%*% cov2  %*%t(contrast_statment.m)) %*% contrast_statment_est # calculate chi-squared test statistic
+  
+  cont_p_value  <- pchisq(chisq.v, df, ncp=0, lower.tail=lower_tail, log.p=log_p) # calculate p value
+  cont_p_value = format.pval(cont_p_value, digits = 2)
+  
+  contrast_statment_est = round(contrast_statment_est, 3)
+  
+  return (list(contrast_statment_est, cont_p_value))
+}
+
+#  gee_model = min_gee
+# contrast_statment = non_daily_dif
+# df = 1
+# lower_tail = FALSE
+# log_p = FALSE
+
+
+#### Function for Overall difference of differences
+contrast_overal = function(gee_model, dif1, dif2, dif3, df, lower_tail = FALSE, log_p = FALSE){
+  
+  coef2 <- summary(gee_model)$coefficients[,1] # coefficients from gee model
+  cov2 <- summary(gee_model)$cov.scaled # scaled covariance from gee model
+  contrast_statment.m <- matrix(c(dif1, dif2, dif3), byrow=T, 3, 7) # convert contrast statment to 1 by 7 matrix
+
+  contrast_statment_est <- contrast_statment.m%*%coef2 # get estimate of difference from contrast statement * coefficients
+
+  chisq.v <- t(contrast_statment_est)%*%solve(contrast_statment.m%*% cov2  %*%t(contrast_statment.m)) %*% contrast_statment_est # calculate chi-squared test statistic
+  
+  overall_p_value  <- pchisq(chisq.v, df, ncp=0, lower.tail=lower_tail, log.p=log_p) # calculate p value
+  overall_p_value = format.pval(overall_p_value, digits = 2)
+  return (overall_p_value)
+}
+```
+
+
+
+## Min. Constriction Results
+
+```{r}
+
+## Pairwise estimates for differences and p-values for table 4
+non_daily_results = contrast_pair(min_gee, non_daily_dif, 1) # dif_daily - dif_non
+
+non_occ_results = contrast_pair(min_gee, non_occ_dif, 1) #  dif_occ - Dif_non 
+
+occ_daily_results = contrast_pair(min_gee, occ_daily_dif, 1)#  dif_daily - Dif_occ 
+
+overall_min_constrict = contrast_overal(min_gee, non_dif, occ_dif, daily_dif, df = 3 )
+
+
+
+### Creating row for table 
+
+row_min_con = t(as.matrix(c(unlist(non_daily_results), unlist(non_occ_results), unlist(occ_daily_results), overall_min_constrict)))
+colnames(row_min_con) = c("estimate", "p-value", "estimate", "p-value", "estimate", "p-value", "overall")
+
+```
+
+
+## AUC results
+
+```{r}
+
+## Pairwise estimates for differences and p-values for table 4
+non_daily_results_auc = contrast_pair(auc_gee, non_daily_dif, 1) # dif_daily - dif_non
+
+non_occ_results_auc = contrast_pair(auc_gee, non_occ_dif, 1) #dif_occ - Dif_non 
+
+occ_daily_results_auc = contrast_pair(auc_gee, occ_daily_dif, 1)#  dif_daily - Dif_occ 
+
+
+overall_auc = contrast_overal(auc_gee,non_dif, occ_dif, daily_dif, df = 3 )
+
+
+
+### Creating row for table 
+
+row_auc = t(as.matrix(c(unlist(non_daily_results_auc), unlist(non_occ_results_auc), unlist(occ_daily_results_auc), overall_auc)))
+colnames(row_auc) = c("estimate", "p-value", "estimate", "p-value", "estimate", "p-value", "overall")
+
+```
+
+
+## Completed Obs results
+
+```{r}
+
+## Pairwise estimates for differences and p-values for table 4
+non_daily_results_obs = contrast_pair(obs_gee, non_daily_dif, 1) # dif_daily - dif_non
+
+non_occ_results_obs = contrast_pair(obs_gee, non_occ_dif, 1) #dif_occ - Dif_non
+
+occ_daily_results_obs = contrast_pair(obs_gee, occ_daily_dif, 1)#  dif_daily - Dif_occ 
+
+
+overall_obs = contrast_overal(obs_gee,non_dif, occ_dif, daily_dif, df = 3 )
+
+
+
+### Creating row for table 
+
+row_obs = t(as.matrix(c(unlist(non_daily_results_obs), unlist(non_occ_results_obs), unlist(occ_daily_results_obs), overall_obs)))
+colnames(row_auc) = c("estimate", "p-value", "estimate", "p-value", "estimate", "p-value", "overall")
+
+```
+
+## Table 3 ; Estimated Differences ; Non vs Occ vs Daily 
+
+```{r, eval = FALSE}
+#tab_differences = round(rbind(row_min_con, row_auc),4)
+
+tab_differences =rbind(row_min_con, row_auc)
+
+rownames(tab_differences) = c("Percent Constriction", "AUC")
+
+
+
+
+
+kable(tab_differences,
+      "html",
+      booktabs = T,
+      align = c("r"),
+      caption = "Table 3") %>%
+  kable_classic("striped", full_width = F,
+                position = "center", font_size = 12) %>%
+  add_header_above(c("Scalar Feature"=1, "Daily vs. Non" = 2, "Occ. vs. Non" = 2, "Daily vs. Occ" =2, " "=1))
+
+```
+
+
+
+# Table 4
+
+## Gee model with non vs user (general)
+
+```{r}
+
+#### Taking the easy way out and making a new variable 
+
+scalars = scalars %>% mutate(group_general = case_when(
+  user_type == "non-user" ~ "non-user",
+  TRUE ~ "user"
+))
+
+## Percent constriction
+min_gee_general <- geeglm(min_constriction ~ eye + prepost*group_general,
+               data = scalars, 
+               id = factor(subject_id), 
+               family = gaussian,
+               corstr = "independence")
+
+## AUC
+auc_gee_general <- geeglm(AUC ~ eye + prepost*group_general,
+               data = scalars, 
+               id = factor(subject_id), 
+               family = gaussian,
+               corstr = "independence")
+## Autocorrelation
+# acf_gee_general <- geeglm(acf_original ~ eye + prepost*group_general,
+#                data = scalars, 
+#                id = factor(subject_id), 
+#                family = gaussian,
+#                corstr = "independence")
+## Completed Obs 
+obs_gee_general <- geeglm(cbind(completed_obs, duration - completed_obs) ~ eye + prepost*group_general,
+               data = scalars, 
+               id = factor(subject_id), 
+               family = binomial,
+               corstr = "independence")
+
+summary(auc_gee_general)
+
+```
+
+# Group means 
+
+```{R}
+
+coef_min_gen <- summary(min_gee_general)$coefficients[,1] # coefficients from gee model for min constriction - general user
+
+se_min_gen <- summary(min_gee_general)$coefficients[,2] # SE from gee model for min constriction - general user
+
+
+coef_auc_gen <- summary(auc_gee_general)$coefficients[,1] # coefficients from gee model for min auc - general user
+se_auc_gen <- summary(auc_gee_general)$coefficients[,2] # SE from gee model for min auc - general user
+
+
+coef_obs_gen <- exp(summary(obs_gee_general)$coefficients[,1]) # coefficients from gee model for completed obs - general user
+se_obs_gen <- exp(summary(obs_gee_general)$coefficients[,2]) # SE from gee model for completed obs - general user
+
+# Int + right + post + general + post*general 
+
+## Pre contrast statements
+pre_non_gen = c(1, 0, 0, 0, 0)
+pre_use_gen = c(1, 0, 0, 1, 0)
+
+## post contrast statements
+post_non_gen = c(1, 0, 1, 0, 0)
+post_use_gen = c(1, 0, 1, 1, 1)
+
+general_dif = post_use_gen - pre_use_gen
+
+### Means for general user - min. constriction
+mean_pre_use_gen_min = sum(pre_use_gen*coef_min_gen)
+mean_post_use_gen_min = sum(post_use_gen*coef_min_gen)
+
+### SE for general user - min. constriction
+se_pre_use_gen_min = sum(pre_use_gen*se_min_gen)
+se_post_use_gen_min = sum(post_use_gen*se_min_gen)
+
+## Means for general user - auc
+mean_pre_use_gen_auc = sum(pre_use_gen*coef_auc_gen)
+mean_post_use_gen_auc = sum(post_use_gen*coef_auc_gen)
+
+## Means for general user - auc
+se_pre_use_gen_auc = sum(pre_use_gen*se_auc_gen)
+se_post_use_gen_auc = sum(post_use_gen*se_auc_gen)
+
+## Means for general user - Completed Obs
+mean_pre_use_gen_obs = sum(pre_use_gen*coef_obs_gen)
+mean_post_use_gen_obs = sum(post_use_gen*coef_obs_gen)
+
+## Means for general user - Completed Obs
+se_pre_use_gen_obs = sum(pre_use_gen*se_obs_gen)
+se_post_use_gen_obs = sum(post_use_gen*se_obs_gen)
+
+
+### contrast statments for Differences; ref(Post - pre) - comp(post - pre) ###
+
+# Non vs general
+
+non_general_dif = (post_use_gen - pre_use_gen) - (post_non_gen - pre_non_gen) 
+
+```
+
+# Functions for estimates and p-values of difference of differecences using contrast statements 
+
+```{r}
+### Function for pairwise difference of differences
+contrast_pair = function(gee_model, contrast_statment, df, lower_tail = FALSE, log_p = FALSE){
+  
+  coef2 <- summary(gee_model)$coefficients[,1] # coefficients from gee model
+  cov2 <- summary(gee_model)$cov.scaled # scaled covariance from gee model
+  contrast_statment.m <- matrix(contrast_statment, byrow=T, 1, 5) # convert contrast statment to 1 by 7 matrix
+
+  contrast_statment_est <- contrast_statment.m%*%coef2 # get estimate of difference from contrast statement * coefficients
+
+  chisq.v <- t(contrast_statment_est)%*%solve(contrast_statment.m%*% cov2  %*%t(contrast_statment.m)) %*% contrast_statment_est # calculate chi-squared test statistic
+  
+  cont_p_value  <- pchisq(chisq.v, df, ncp=0, lower.tail=lower_tail, log.p=log_p) # calculate p value
+  cont_p_value = format.pval(cont_p_value, digits = 2)
+  
+  contrast_statment_est = round(contrast_statment_est, 3)
+  
+  return (list(contrast_statment_est, cont_p_value))
+}
+
+```
+
+
+
+
+## Min. Constriction Results
+
+```{r}
+
+## Pairwise estimates for differences and p-values for table 4
+non_general_results = contrast_pair(min_gee_general, non_general_dif, 1) # Dif_non - dif_daily
+summary(min_gee_general)
+summary(min_gee)
+### Creating row for table 
+
+row_min_con_gen = t(as.matrix(unlist(non_general_results)))
+colnames(row_min_con_gen) = c("estimate", "p-value")
+
+```
+
+
+## AUC results
+
+```{r}
+## Pairwise estimates for differences and p-values for table 4
+non_general_results_auc = contrast_pair(auc_gee_general, non_general_dif, 1) # Dif_non - dif_daily
+ 
+
+
+
+
+### Creating row for table 
+
+row_auc_gen = t(as.matrix(unlist(non_general_results_auc)))
+colnames(row_auc_gen) = c("estimate", "p-value")
+
+```
+
+## ACF results
+
+```{r, eval = FALSE}
+## Pairwise estimates for differences and p-values for table 4
+non_general_results_acf = contrast_pair(acf_gee_general, non_occ_dif, 1) # Dif_non - dif_daily
+ 
+
+### Creating row for table 
+
+row_acf_gen = t(as.matrix(unlist(non_general_results_acf)))
+colnames(row_acf_gen) = c("estimate", "p-value")
+
+```
+
+## OBS results
+
+```{r}
+## Pairwise estimates for differences and p-values for table 4
+non_general_results_obs = contrast_pair(obs_gee_general, non_general_dif, 1) # Dif_non - dif_daily
+ 
+
+### Creating row for table 
+
+row_obs_gen = t(as.matrix(unlist(non_general_results_obs)))
+colnames(row_obs_gen) = c("estimate", "p-value")
+
+```
+
+
+# Combined Table 3 + 4 
+
+```{r}
+row_auc_gen = t(as.matrix(unlist(non_general_results_auc)))
+colnames(row_auc_gen) = c("estimate", "p-value")
+
+
+row_min_con_gen = t(as.matrix(unlist(non_general_results)))
+colnames(row_min_con_gen) = c("estimate", "p-value")
+
+## full row for percent constriction
+row_min_con = t(as.matrix(c(unlist(non_daily_results), unlist(non_occ_results), unlist(occ_daily_results), row_min_con_gen)))
+colnames(row_min_con) = c("estimate", "p-value", "estimate", "p-value", "estimate", "p-value","estimate", "p-value")
+
+## full row for AUC
+
+row_auc = t(as.matrix(c(unlist(non_daily_results_auc), unlist(non_occ_results_auc), unlist(occ_daily_results_auc), row_auc_gen)))
+colnames(row_auc) = c("estimate", "p-value", "estimate", "p-value", "estimate", "p-value",  "estimate", "p-value")
+
+## full row for ACF
+
+# row_acf = t(as.matrix(c(unlist(non_daily_results_acf), unlist(non_occ_results_acf), unlist(occ_daily_results_acf), row_acf_gen)))
+# colnames(row_acf) = c("estimate", "p-value", "estimate", "p-value", "estimate", "p-value","estimate", "p-value")
+
+## full row completed obs
+row_obs = t(as.matrix(c(unlist(non_daily_results_obs), unlist(non_occ_results_obs), unlist(occ_daily_results_obs), row_obs_gen)))
+colnames(row_obs) = c("estimate", "p-value", "estimate", "p-value", "estimate", "p-value",  "estimate", "p-value")
+
+tab_differences = rbind(row_min_con, row_auc, row_obs)
+
+rownames(tab_differences) = c("Percent Constriction", "AUC", "Completed Obs.")
+
+kable(tab_differences,
+      "html",
+      booktabs = T,
+      align = c("r")) %>%
+  kable_classic("striped", full_width = F,
+                position = "center", font_size = 12) %>%
+  add_header_above(c("Scalar Feature"=1 ,"Daily vs. Non-User"=2 ,"Occasional vs. Non-User"=2, "Daily vs. Occasional"=2 ,"General vs. Non-User"=2 ))
+```
+
+
+```{r, eval = FALSE}
+
+# ## Table 4 ; Estimated Differences ; Non vs general user 
+
+#tab_differences_gen = round(rbind(row_min_con_gen, row_auc_gen),4)
+
+tab_differences_gen = rbind(row_min_con_gen, row_auc_gen)
+
+rownames(tab_differences_gen) = c("Percent Constriction", "AUC")
+colnames(tab_differences_gen) = c("estimate" , "p-value")
+
+kable(tab_differences_gen,
+      "html",
+      booktabs = T,
+      align = c("r"),
+      caption = "Table 4") %>%
+  kable_classic("striped", full_width = F,
+                position = "center", font_size = 12) %>%
+  add_header_above(c("Scalar Feature"=1,"User vs. Non-User"=2 ))
+
+```
+
+
+
+# Table 2 - Adjusted means for pre and post 
+
+```{r}
+
+
+non_user_means = c(mean_pre_non_min, mean_pre_non_auc, mean_pre_non_obs, mean_post_non_min, mean_post_non_auc, mean_post_non_obs)
+
+occ_user_means = c(mean_pre_occ_min, mean_pre_occ_auc, mean_pre_occ_obs, mean_post_occ_min, mean_post_occ_auc, mean_post_occ_obs)
+
+daily_user_means = c(mean_pre_daily_min, mean_pre_daily_auc, mean_pre_daily_obs, mean_post_daily_min, mean_post_daily_auc, mean_post_daily_obs)
+
+gen_user_means = c(mean_pre_use_gen_min, mean_pre_use_gen_auc, mean_pre_use_gen_obs, mean_post_use_gen_min, mean_post_use_gen_auc, mean_post_use_gen_obs)
+
+
+means_table = round(as.matrix(rbind(non_user_means, occ_user_means, daily_user_means, gen_user_means)),2)
+
+
+
+colnames(means_table) = c("Percent Constriction", "AUC", "Observations", "Percent Constriction", "AUC", "Observations")
+
+rownames(means_table) = c("non-user", 'occasional', 'daily', 'general user')
+
+kable(means_table,
+      "html",
+      booktabs = T,
+      align = c("r"),
+      caption = "Table 2") %>%
+  kable_classic("striped", full_width = F,
+                position = "center", font_size = 12) %>%
+  add_header_above(c("User Group"=1,"Baseline"=3, "Post-Smoking" = 3))
+```
+
+```{r, eval = FALSE}
+
+# intercept + right + post + occasional + daily + post * occasional + post*daily
+
+coef2 <- summary(min_gee)$coefficients[,1] # coefficients from gee model
+cov2 <- summary(min_gee)$cov.scaled # scaled covariance from gee model
+
+contrast_statment = c(1, 1, 1, 1, 0, 1, 1)
+contrast_statment.m <- matrix(contrast_statment, byrow=T, 1, 7) # convert contrast statment to 1 by 7 matrix
+
+  contrast_statment_est <- contrast_statment.m%*%coef2 # get estimate of difference from contrast statement * coefficients
+
+  chisq.v <- t(contrast_statment_est)%*%solve(contrast_statment.m%*% cov2  %*%t(contrast_statment.m)) %*% contrast_statment_est # calculate chi-squared test statistic
+  
+  cont_p_value  <- pchisq(chisq.v, df, ncp=0, lower.tail = FALSE, log.p = FALSE) # calculate p value
+  cont_p_value = format.pval(cont_p_value, digits = 2)
+  
+  contrast_statment_est = round(contrast_statment_est, 3)
+```
+
+# Post event difference for non vs general user 
+```{R}
+post_dif = post_non_gen - post_use_gen
+
+
+min_post_results = contrast_pair(min_gee_general, post_dif, 1) # Dif_non - dif_daily
+
+min_auc_results = contrast_pair(auc_gee_general, post_dif, 1) # Dif_non - dif_daily
+
+min_post_results 
+min_auc_results
+```
+
+
+# Graph for poster
+
+```{r}
+se_non_dif = sum(non_dif*se_min)
+se_occ_dif = sum(occ_dif*se_min)
+se_daily_dif = sum(daily_dif*se_min)
+se_general_dif = sum(general_dif*se_min_gen)
+
+non_dif = mean_post_non_min - mean_pre_non_min
+occ_dif = mean_post_occ_min - mean_pre_occ_min
+daily_dif = mean_post_daily_min - mean_pre_daily_min
+general_dif = mean_post_use_gen_min - mean_pre_use_gen_min
+
+# Upper 95 
+nonU = non_dif + 1.96*se_non_dif
+occU = occ_dif + 1.96*se_occ_dif
+dailyU = daily_dif + 1.96*se_daily_dif
+genU = general_dif + 1.96*se_general_dif
+
+# Lower 95 
+nonL = non_dif - 1.96*se_non_dif
+occL = occ_dif - 1.96*se_occ_dif
+dailyL = daily_dif - 1.96*se_daily_dif
+genL = general_dif - 1.96*se_general_dif
+
+
+non_dif
+nonU
+nonL
+
+row1 = c(non_dif, nonU, nonL, "Non-User")
+row2 = c(occ_dif, occU, occL, "Occasional")
+row3 = c(daily_dif, dailyU, dailyL, "Daily")
+row4 = c(general_dif, genU, genL, "General")
+
+
+
+dat = rbind(row1, row2, row3, row4)
+rownames(dat) = c("Non-User", "Occasional", "Daily", "General")
+colnames(dat) = c("Difference", "Upper 95% CI", "Lower 95% CI", "user_type")
+
+dat = as_tibble(dat)
+
+dat$Difference = as.numeric(dat$Difference)
+dat$`Upper 95% CI` = as.numeric(dat$`Upper 95% CI`)
+dat$`Lower 95% CI` = as.numeric(dat$`Lower 95% CI`)
+
+dat$user_type = factor(dat$user_type, levels = c("Non-User", "Occasional", "Daily", "General") )
+
+ggplot(dat, aes(x  = user_type, y=Difference)) + 
+    geom_errorbar(aes(ymin= `Lower 95% CI`, ymax=`Upper 95% CI`), colour="black", width=.4) +
+    geom_point(size = 10) +
+  ylab("Difference (Post - Pre)") +
+  xlab("Cannabis User Group") + 
+  ggtitle("Change in Percent Light Reflex After Cannabis Consumption")+
+  theme(plot.title = element_text(hjust = 0.5), axis.title = element_text(size = 50), axis.text = element_text(size = 55))+ 
+    theme(plot.title = element_text(size = 45, face = "bold"))
+
+# ggsave(file="poster_results.png")
+
+```
