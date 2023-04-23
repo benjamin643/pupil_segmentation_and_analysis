@@ -1,0 +1,179 @@
+---
+title: "cleaning_curves"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(tidyverse)
+library(ggpubr)
+library(mgcv)
+library(qgam)
+
+library(tseries) # for autocorrelation function 
+
+library("grid")
+library("ggplotify")
+
+```
+
+# Output full participants
+
+```{R}
+
+setwd("/Users/benjaminsteinhart/Desktop/image_seg/results/full_output_water_2part/")
+
+files <- dir(path = "/Users/benjaminsteinhart/Desktop/image_seg/results/full_output_water_2part/",pattern = "*.csv")
+
+
+pupils <- files %>%
+  map(read_csv) %>%    # read in all the files individually, using
+                       # the function read_csv() from the readr package
+  reduce(rbind) 
+
+
+
+## for practice video results
+pupils = read_csv("/Users/benjaminsteinhart/Desktop/example_video/pupil_predictions.csv")
+```
+
+## Removing based on qgam 6 se from Major Axis
+
+```{r}
+# participant_id = output$timeid %>% unique()
+eyes = c("Left", "Right")
+
+participant_id = output$timeid %>% unique()
+
+df_qgam <- data.frame(timeid = character(),
+                 frame=integer(),
+                 eye=character(),
+                 time= double(),
+                 major_axis= double(),
+                 minor_axis =  double(),
+                 eccentricity =  double(),
+                 centerx =  double(),
+                 centery = double(),
+                 outliers = integer(),
+                 predicted = double(),
+              
+                 stringsAsFactors=FALSE)
+
+count = 0 # Count being used to properly store results for each row in storage_matrix
+
+for (iter_eye in 1:2){
+  for (iter1 in 1:length(participant_id)){
+    # 
+    left_eye = output %>% filter(timeid == participant_id[iter1], eye == eyes[iter_eye]) #creating temporary data frame
+  # 
+    left_eye = left_eye[complete.cases(left_eye),] ## taking complete cases from temp data 
+  
+    if(nrow(left_eye) >= 50){ ## this condition ensures that a model will be fit without error 
+  
+    quantile_gam_left = qgam(major_axis~ s(frame, k=25, bs="cs"),
+  										data = left_eye,
+  										qu = 0.5)
+  
+    p <- predict(quantile_gam_left, type = "link", se.fit = TRUE)# predicted values
+  
+      upr <- p$fit + (6*p$se.fit) # upper threshold
+      lwr <- p$fit - (6*p$se.fit) # lower threshold
+  
+      majors = left_eye$major_axis # getting vector from temp data frame to check for outliers
+      new_vec = NULL # initiating vec to keep track of whether or not point is within SE's
+  
+      for (i in 1:length(p$fit)){
+        new_vec[i] = if_else(majors[i] < upr[i] & majors[i] > lwr[i], 1, 0) # checks whether point is within x SE's
+          }
+  
+      left_eye$outliers = new_vec # attaches outlier identifying vec to temp data
+      left_eye$predicted = p$fit
+  
+      temp2 = left_eye %>% filter(outliers == "1") # new cleaned data set
+  
+      df_qgam = full_join(df_qgam, temp2)
+  
+    }}
+}
+  
+```
+
+
+## Removing based on mean +- 1.5 standard deviations of center points
+
+```{r}
+####
+df_qgam = df_qgam %>% mutate(dist_from_origin = sqrt(centerx^2 +  centerx^2))
+
+
+df_qgam = df_qgam %>% group_by(timeid, eye) %>% mutate(med_y = median(dist_from_origin, na.rm= TRUE), sd_y = sd(dist_from_origin, na.rm=TRUE)) %>% ungroup()
+
+df_qgam = df_qgam  %>% group_by(timeid, eye) %>% filter(dist_from_origin < med_y + 1.5*sd_y,dist_from_origin > med_y - 1.5*sd_y)
+
+  
+```
+
+
+## Refit new cleaned points with qgam 
+
+```{r}
+
+participant_id = output$timeid %>% unique()
+
+pupils_fin <- data.frame(timeid = character(),
+                 frame=integer(),
+                 eye=character(),
+                 time= double(),
+                 major_axis= double(),
+                 minor_axis =  double(),
+                 eccentricity =  double(),
+                 centerx =  double(),
+                 centery = double(),
+                 outliers = integer(),
+                 predicted = double(),
+              
+                 stringsAsFactors=FALSE)
+
+for (iter_eye in 1:2){
+  for (iter1 in 1:length(participant_id)){
+    # 
+    left_eye = df_qgam %>% filter(timeid == participant_id[iter1], eye == eyes[iter_eye]) #creating temporary data frame
+  # 
+    left_eye = left_eye[complete.cases(left_eye),] ## taking complete cases from temp data 
+  
+    if(nrow(left_eye) >= 50){ ## this condition ensures that a model will be fit without error 
+  
+    quantile_gam_left = qgam(major_axis~ s(frame, k=25, bs="cs"),
+  										data = left_eye,
+  										qu = 0.5)
+  
+     p <- predict(quantile_gam_left, type = "link", se.fit = TRUE)# predicted values
+  
+      left_eye$predicted = p$fit
+  
+      pupils_fin = full_join(pupils_fin, left_eye)
+  
+    }}
+  
+}
+# save pupils data
+
+```
+
+# Save data 
+
+
+```{r}
+pupils_fin = as_tibble(pupils_fin)
+
+filename = "pupils.csv"
+
+# write_csv(pupils_fin, file = here::here("data", filename))
+
+```
+
+
+
+
+

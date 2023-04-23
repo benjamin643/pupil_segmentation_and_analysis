@@ -12,10 +12,13 @@ from scipy import ndimage as ndi
 import math
 from skimage.filters import threshold_multiotsu
 
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+
+
 
 ### starts recording time for entire program to run
 my_time = time.time()
-
 
 ##### This is a function that implements several image processing techniques to create 
 ##### a binary mask from an input image and then fits an ellipse around the binary image
@@ -24,7 +27,8 @@ my_time = time.time()
 ##### lower and upper quantile to truncate histogram to create more balanced classes for otsu
 ##### thresholding, and an index (0) that indicates grabbing the lowest class as pupil 
 ##### estimate. Function returns elllipse info capturing pupil size/location. 
-##### returns: major, minor axis size. eccentricity. rotation. location.
+##### returns: major, minor axis size. eccentricity. rotation. location
+
 def contour_mask(image, gamma_value, morph_disk, median_thresh, quant1, quant2, otsu_index):
 
     # image = cv.imread(file)
@@ -42,28 +46,24 @@ def contour_mask(image, gamma_value, morph_disk, median_thresh, quant1, quant2, 
 
     # ## Otsu multiple 
     mask = np.logical_and(log_image > ots1, log_image < ots2)
-    # thresh = threshold_otsu(log_image[mask])
-    # print('threshold is',thresh)
-
     ## Multi level Otsu
     thresholds = threshold_multiotsu(log_image[mask])
-    # print("thresholds", thresholds)
 
-
+    ### create a binary image from rthe Otsu threshold
     img_bin = np.zeros((log_image.shape))
     img_bin[log_image <= thresholds[0]] = 255
     img_bin = img_bin.astype('int64')
 
 
+    #### image morphology
+    footprint = disk(morph_disk) # morphology disk size 
 
-    footprint = disk(morph_disk)
+    closed = closing(img_bin, footprint) # closing operation
 
-    closed = closing(img_bin, footprint)
-
-    opened = opening(closed, footprint)
+    opened = opening(closed, footprint) ## opening operation 
     opened = np.uint8(opened)
 
-
+    #### storage vectors: each contour gets an estimated ellipse. Storing everything then choose best fit based on size, eccentricity, location. 
     minor_axis_list = []
     major_axis_list = []
     centerX_list = []
@@ -71,7 +71,6 @@ def contour_mask(image, gamma_value, morph_disk, median_thresh, quant1, quant2, 
     rotation_list = []
     area_list = []
     eccentricity_list = []
-
 
     canny_output = cv.Canny(opened, 100, 200, apertureSize = 3)
     contours, hierachy = cv.findContours(canny_output,cv.RETR_TREE,cv.CHAIN_APPROX_SIMPLE)
@@ -134,9 +133,6 @@ def contour_mask(image, gamma_value, morph_disk, median_thresh, quant1, quant2, 
 ##### of seperating the binary image using the watershed algorithm. Additional input
 ##### is the size of the watershed basin. Returns ellipse info of best estimate for pupil size. 
 def contour_mask_water(image, gamma_value, morph_disk, water_thresh, median_thresh, quant1, quant2, otsu_index):
-
-    # image = cv.imread(file)
-    # img = cv.cvtColor(image,cv.COLOR_BGR2GRAY)
     img_med = ndi.median_filter(image, size=median_thresh)
 
     log_image = np.array((255/255**gamma_value)*(img_med**(gamma_value)),dtype='uint8')
@@ -150,27 +146,25 @@ def contour_mask_water(image, gamma_value, morph_disk, water_thresh, median_thre
 
     # ## Otsu multiple 
     mask = np.logical_and(log_image > ots1, log_image < ots2)
-    # thresh = threshold_otsu(log_image[mask])
-    # print('threshold is',thresh)
 
     ## Multi level Otsu
     thresholds = threshold_multiotsu(log_image[mask])
-    # print("thresholds", thresholds)
-
 
     img_bin = np.zeros((log_image.shape))
     img_bin[log_image <= thresholds[otsu_index]] = 255
     img_bin = img_bin.astype('int64')
 
 
+    # image morphology
+    footprint = disk(morph_disk) # set the disk size for image morphology
 
-    footprint = disk(morph_disk)
+    closed = closing(img_bin, footprint) # conducts a closing operation
 
-    closed = closing(img_bin, footprint)
+    opened = opening(closed, footprint )# conducts an opening operation
 
-    opened = opening(closed, footprint)
-
-    distance = ndi.distance_transform_edt(opened)
+    # implement the watershed algorithm to identify different pieces of the image.
+    distance = ndi.distance_transform_edt(opened) # distance calculation
+    
     coords = peak_local_max(distance, footprint=np.ones((water_thresh, water_thresh)), labels=opened)
     mask = np.zeros(distance.shape, dtype=bool)
     mask[tuple(coords.T)] = True
@@ -186,7 +180,7 @@ def contour_mask_water(image, gamma_value, morph_disk, water_thresh, median_thre
     area_list = []
     eccentricity_list = []
 
-
+    ## For each distinct label from the watershed algorithm, going to conduct canny edge detection, and then fit ellipses around the contours. 
     for label in temp_labels:
         img_new = np.zeros((image.shape), dtype = "float64")
         img_new[labels==label] = 255
@@ -214,11 +208,8 @@ def contour_mask_water(image, gamma_value, morph_disk, water_thresh, median_thre
                 # e = the eccentricity of the ellipse. e2 = 1 - b2/a2.; will assume pupil object is closest to zero
                 e = 1 - ((minor_axis/2)**2)/((major_axis/2)**2)
                 #print(e)
-                if area > 5000 and e < 0.5:
+                if area > 5000 and e < 0.5: ## these are criteria that are used to establish realistic options for pupil size 
                     if area <100000:
-
-                        #print("the minor axis is " , minor_axis)
-                        #print("the major axis is ",major_axis)
                         minor_axis_list.append(minor_axis)
                         major_axis_list.append(major_axis)
                         centerX_list.append(centerX)
@@ -227,6 +218,7 @@ def contour_mask_water(image, gamma_value, morph_disk, water_thresh, median_thre
                         area_list.append(area)
                         eccentricity_list.append(e)
                         index_delete = []
+   ## removing potential pupil estimates based on where the location is in the image 
     for i in range(len(centerX_list)):
         if centerX_list[i] < 40 or centerX_list[i] > 410:
             index_delete.append(i)
@@ -234,12 +226,13 @@ def contour_mask_water(image, gamma_value, morph_disk, water_thresh, median_thre
             index_delete.append(i)
 
     index_delete = np.unique(np.asarray(index_delete))
-    # print("center x list before",centerX_list )
     for delete in index_delete:
         del centerX_list[delete]
         del centerY_list[delete]
     distance_min = 1000
     index_fin = 0
+    
+    ### calculates the distance to the center of the estimate is to the center of the image is: ideally, should be small distance 
     for i in range(len(centerX_list)):
         dist_center = np.sqrt((centerX_list[i] - 224)**2 + (centerY_list[i] - 199)**2)
         if dist_center < distance_min:
@@ -248,7 +241,7 @@ def contour_mask_water(image, gamma_value, morph_disk, water_thresh, median_thre
 
     return centerX_list[index_fin], centerY_list[index_fin], minor_axis_list[index_fin], major_axis_list[index_fin], rotation_list[index_fin], eccentricity_list[index_fin]
 
-## prediction for mask; creates binary image.
+## prediction for mask; creates binary image. ### Note: this function can be used to output a binary mask. It was used to compare the predicted pupil size to manually segmented images 
 def mask_prediction(image, center, axis_list, rotation ):
 
     img_shape = image.shape
@@ -278,43 +271,21 @@ def mask_prediction(image, center, axis_list, rotation ):
 
     return image
 
-time_list = []
-file_names = []
-all_labels = []
-center_list_allx = []
-center_list_ally = []
-minor_list_all = []
-major_list_all = []
-eccentricity_list_all = []
-
-time_listR = []
-center_list_allxR = []
-center_list_allyR = []
-minor_list_allR = []
-major_list_allR = []
-eccentricity_list_allR = []
-frame_list = []
-file_namesR = []
-
 
 #### path_to_videos defines where your videos / data are. 
-path_to_videos = '/Volumes/BENS_DRIVE/videos_cut_timing/*.mp4'
+path_to_videos = '/Volumes/BENS_DRIVE/videos_cut_timing/*.mp4' # input your path to input videos
 
 ## Path to output; where you will save csv info. 
 
-path_to_output = "/Users/benjaminsteinhart/Desktop/image_seg/*.csv"
+path_to_output = "/Users/benjaminsteinhart/Desktop/image_seg/*.csv" # input your path to output
 
+### I did this in multiple batches, so had a check to see if I had already created the output for a video.
 already_output = []
 for file in sorted(glob.glob(path_to_output)):
     dirname, basename = os.path.split(file)
     my_file = basename[:-8]
     already_output.append(my_file)
 print(already_output)
-
-
-## creating random list to select participants from 
-
-
 
 count = 0
 count_vid = 1
@@ -325,6 +296,8 @@ for file in sorted(glob.glob(path_to_videos)):
     match_time = file[-8:-4]
 
     video_time = file[-8:]
+
+    #### Creating storage vectors for left eye
     time_list = []
     file_names = []
     all_labels = []
@@ -334,6 +307,7 @@ for file in sorted(glob.glob(path_to_videos)):
     major_list_all = []
     eccentricity_list_all = []
 
+    #### Creating storage vectors for right eye
     time_listR = []
     center_list_allxR = []
     center_list_allyR = []
@@ -342,9 +316,9 @@ for file in sorted(glob.glob(path_to_videos)):
     eccentricity_list_allR = []
     frame_list = []
     file_namesR = []
-    # print(name+match_time)
+    print(name+match_time)
     if video_time != "pre1.mp4":
-        if (name+match_time) not in  already_output:
+        if (name+match_time) not in  already_output: # check to see if I have already calculated the output for a given video.
             cap= cv.VideoCapture(file)
             i=0
             while(cap.isOpened()):
@@ -353,42 +327,35 @@ for file in sorted(glob.glob(path_to_videos)):
                     break
                 try:
                     time_start = time.time()
-                    # print("eyes about to be segmented")
-                    left_eye = frame[400:800, 250:700] #for right eye, try right bound at 1600
+                    left_eye = frame[400:800, 250:700] # Captures image of left eye from the video frame
                     left_eye = cv.cvtColor(left_eye,cv.COLOR_BGR2GRAY) # converts color to grayscale
-                    print("eyes segmented")
-                    centerX, centerY, minor_axis, major_axis, rotation, eccentricity =  contour_mask(left_eye, .7, 8, 15, 0.01, 0.2, 0) # threshold determined from training (96)
-                    # print("centerX is ", centerX)
-                    # print("major axis is", major_axis)
-                    mask_img = mask_prediction(left_eye, (round(centerX), round(centerY)), (round(minor_axis/2), round(major_axis/2)), round(rotation))
-
+                    centerX, centerY, minor_axis, major_axis, rotation, eccentricity =  contour_mask(left_eye, .7, 8, 15, 0.01, 0.2, 0) # thresholds determined from training
+                    ##### add values from estimates to the storage vectors for a given subject ############ 
                     ## adding the axis
                     minor_list_all.append(minor_axis)
                     major_list_all.append(major_axis)
-                    print(major_list_all)
                     # time for completion
                     time_fin_left =  time.time() - time_start
                     time_list.append(time_fin_left)
                     ## Adding file name
                     file_names.append(basename[0:7] + basename[19:23] + "_pupil_left" + str(i))
-                    # print(basename[0:7] + basename[19:23] + "_pupil_left" + str(i))
                     # # ## adding center
                     center_list_allx.append(centerX)
                     center_list_ally.append(centerY)
                     ## adding eccentricity
                     eccentricity_list_all.append(eccentricity)
 
-                except:
+                except: ### if the above method did not work, a common issue was that the estimate was too large because the pupil connects to the iris. We implmement the watershed algorithm to try to seperate them
                     print("exception")
                     try:
                         time_start = time.time()
                         # print("eyes about to be segmented")
-                        left_eye = frame[400:800, 250:700] #for right eye, try right bound at 1600
+                        # left_eye = frame[400:800, 250:700] #for right eye, try right bound at 1600
+                        left_eye = frame[80:214, 83:233] #for right eye, try right bound at 1600
                         left_eye = cv.cvtColor(left_eye,cv.COLOR_BGR2GRAY) # converts color to grayscale
-                        # print("type left eye is", type(left_eye))
-                        # print("shape left eye", left_eye.shape)
-                        # print("eyes segmented")
+                        ## run updated size estimating function that includes watershed algorithm
                         centerX, centerY, minor_axis, major_axis, rotation, eccentricity =  contour_mask_water(left_eye, .7, 8, 25, 15, 0.01, 0.2, 0) # threshold determined from training (96)
+                        ##### add values from estimates to the storage vectors for a given subject ############ 
                         ## adding the axis
                         minor_list_all.append(minor_axis)
                         major_list_all.append(major_axis)
@@ -397,25 +364,21 @@ for file in sorted(glob.glob(path_to_videos)):
                         time_list.append(time_fin_left)
                         ## Adding file name
                         file_names.append(basename[0:7] + basename[19:23] + "_pupil_left" + str(i))
-                        # print(basename[0:7] + basename[19:23] + "_pupil_left" + str(i))
                         # # ## adding center
                         center_list_allx.append(centerX)
                         center_list_ally.append(centerY)
                         ## adding eccentricity
                         eccentricity_list_all.append(eccentricity)
-                        mask_img = mask_prediction(left_eye, (round(centerX), round(centerY)), (round(minor_axis/2), round(major_axis/2)), round(rotation))
-
-
-                    except:
+                        # mask_img = mask_prediction(left_eye, (round(centerX), round(centerY)), (round(minor_axis/2), round(major_axis/2)), round(rotation))
+                    except: #### if there still isn't a good fit, attempts one more using the higher otsu threshold. 
                         try:
                             time_start = time.time()
                             # print("eyes about to be segmented")
-                            left_eye = frame[400:800, 250:700] #for right eye, try right bound at 1600
+                            # left_eye = frame[400:800, 250:700] #for right eye, try right bound at 1600
+                            left_eye = frame[80:214, 83:233] #for right eye, try right bound at 1600
                             left_eye = cv.cvtColor(left_eye,cv.COLOR_BGR2GRAY) # converts color to grayscale
-                            # print("type left eye is", type(left_eye))
-                            # print("shape left eye", left_eye.shape)
-                            # print("eyes segmented")
-                            centerX, centerY, minor_axis, major_axis, rotation, eccentricity =  contour_mask_water(left_eye, .7, 8, 25, 15, 0.01, 0.2, 1) # threshold determined from training (96)
+                            centerX, centerY, minor_axis, major_axis, rotation, eccentricity =  contour_mask_water(left_eye, .7, 8, 25, 15, 0.01, 0.2, 1) # high otsu threshold
+                            ##### add values from estimates to the storage vectors for a given subject ############ 
                             ## adding the axis
                             minor_list_all.append(minor_axis)
                             major_list_all.append(major_axis)
@@ -430,10 +393,9 @@ for file in sorted(glob.glob(path_to_videos)):
                             center_list_ally.append(centerY)
                             ## adding eccentricity
                             eccentricity_list_all.append(eccentricity)
-                            mask_img = mask_prediction(left_eye, (round(centerX), round(centerY)), (round(minor_axis/2), round(major_axis/2)), round(rotation))
+                            # mask_img = mask_prediction(left_eye, (round(centerX), round(centerY)), (round(minor_axis/2), round(major_axis/2)), round(rotation))
 
-                        except:
-
+                        except: ### if still not a valid estimate, place NAs 
                             # print("exception")
                             minor_list_all.append("NA")
                             major_list_all.append("NA")
@@ -448,20 +410,19 @@ for file in sorted(glob.glob(path_to_videos)):
                             center_list_ally.append("NA")
                             ## adding eccentricity
                             eccentricity_list_all.append("NA")
-                try:
+                try: ##### Same process as above but right eye
                     time_start = time.time()
 
                     #### right eye
-                    right_eye = frame[400:800, 1200:1650] #for right eye, try right bound at 1600
+                    right_eye = frame[400:800, 1200:1650] # captures right eye from video
                     right_eye = cv.cvtColor(right_eye,cv.COLOR_BGR2GRAY) # converts color to grayscale
                     centerXR, centerYR, minor_axisR, major_axisR, rotationR, eccentricityR =  contour_mask(right_eye, .7, 8, 15, 0.01, 0.2, 0) # threshold determined from training (96)
                     # print('Ellipses fit')
 
                     time_fin_right = time.time() - time_start
                     # print("time to conduct feature extraction, prob output, ellipse fit for one image is:", time_fin_right)
-                    ## Creating a cur_sum var to select ellipse with highest prob encompassed
-                    prob_sum = 0
-                    prob_index = 0
+                    ##### add values from estimates to the storage vectors for a given subject ############ 
+
                     ## adding the axis
                     minor_list_allR.append(minor_axisR)
                     major_list_allR.append(major_axisR)
@@ -479,16 +440,12 @@ for file in sorted(glob.glob(path_to_videos)):
                 except:
                     try:
                         time_start = time.time()
-
                         #### right eye
                         right_eye = frame[400:800, 1200:1650] #for right eye, try right bound at 1600
                         right_eye = cv.cvtColor(right_eye,cv.COLOR_BGR2GRAY) # converts color to grayscale
                         centerXR, centerYR, minor_axisR, major_axisR, rotationR, eccentricityR =  contour_mask_water(right_eye, .7, 8, 25, 15, 0.01, 0.2, 0) # threshold determined from training (96)
-
                         time_fin_right = time.time() - time_start
-                        ## Creating a cur_sum var to select ellipse with highest prob encompassed
-                        prob_sum = 0
-                        prob_index = 0
+                        ##### add values from estimates to the storage vectors for a given subject ############ 
                         ## adding the axis
                         minor_list_allR.append(minor_axisR)
                         major_list_allR.append(major_axisR)
@@ -508,15 +465,15 @@ for file in sorted(glob.glob(path_to_videos)):
                             time_start = time.time()
 
                             #### right eye
-                            right_eye = frame[400:800, 1200:1650] #for right eye, try right bound at 1600
+                            # right_eye = frame[400:800, 1200:1650] #for right eye, try right bound at 1600
+                            right_eye = frame[80:214, 400:550] #for right eye, try right bound at 1600
+
                             right_eye = cv.cvtColor(right_eye,cv.COLOR_BGR2GRAY) # converts color to grayscale
                             centerXR, centerYR, minor_axisR, major_axisR, rotationR, eccentricityR =  contour_mask_water(right_eye, .7, 8, 25, 15, 0.01, 0.2, 1) # threshold determined from training (96)
 
                             time_fin_right = time.time() - time_start
-                            ## Creating a cur_sum var to select ellipse with highest prob encompassed
-                            prob_sum = 0
-                            prob_index = 0
                             ## adding the axis
+                            ##### add values from estimates to the storage vectors for a given subject ############ 
                             minor_list_allR.append(minor_axisR)
                             major_list_allR.append(major_axisR)
                             # time for completion
@@ -545,14 +502,14 @@ for file in sorted(glob.glob(path_to_videos)):
                             eccentricity_list_allR.append("NA")
 
                 i += 1
-                # print(i)
+                print(i)
 
 
             cap.release()
             cv.destroyAllWindows()
             count+=1
 
-
+            ##### adds each subject specific video results to a data frame to be saved that will have all estimates for each frame for each subject
             percentile_list = pd.DataFrame(
             {'Image':file_names,
             'Time' : time_list,
@@ -572,5 +529,5 @@ for file in sorted(glob.glob(path_to_videos)):
             final_time = time.time() - start_time_paper
             print("time to finish one participant video",final_time)
             name = str(basename[0:7])
-            # percentile_list.to_csv(path_or_buf= "/Users/benjaminsteinhart/Desktop/image_seg/results/full_output_water_2part/" + name + video_time + ".csv")
+            percentile_list.to_csv(path_or_buf= "/Users/benjaminsteinhart/Desktop/example_video/pupil_predictions.csv")
     count_vid +=1 
