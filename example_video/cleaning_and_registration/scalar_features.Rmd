@@ -1,0 +1,218 @@
+---
+title: "scalar_features"
+output: html_document
+date: "2023-04-23"
+---
+```{r setup, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(broom)
+library(ggpubr)
+library(patchwork)
+library(scales)
+library(RColorBrewer)
+library(readxl)
+library(qgam)
+library(kableExtra)
+
+library(pracma)
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 8,
+  fig.height = 6
+)
+theme_set(theme_bw() + theme(legend.position = "bottom"))
+```   
+
+# Load data 
+
+```{r}
+pupils = read_csv( "/Users/benjaminsteinhart/Desktop/example_video/data_output/pupils_clean_register.csv")
+
+```
+
+
+##  Point of minimum constriction / Time to minimum constriction from start of the test 
+
+
+```{r}
+scalars = pupils %>% filter(centered > 0) %>% group_by(timeid, eye) %>% mutate(min_constriction = min(percent_change), duration = max(centered, na.rm=TRUE))  %>% filter(percent_change== min_constriction) %>% select(timeid, eye, min_constriction, centered, duration) %>% unique() %>% ungroup()
+
+scalars$frame_min = scalars$centered
+
+
+```
+
+
+## average size at end of test 
+
+* taking average percent change over the last 30 frames (one second of test)
+
+```{r}
+
+participant_vec = unique(pupils$timeid)
+
+eyes = c("Left", "Right")
+
+storage_matrix = matrix(NA, nrow = length(participant_vec)*2, ncol = 3)
+
+count = 0
+for (iter in 1:length(participant_vec)){
+  for(iter_eye in 1:2){
+    
+    count = count+1
+    
+    temp = pupils %>% filter(timeid == participant_vec[iter], eye == eyes[iter_eye])
+
+    temp = temp[(nrow(temp)-30):nrow(temp), ]
+    
+    avg_end_percent = mean(temp$percent_change)
+  
+    storage_matrix[count, ] = c(participant_vec[iter], eyes[iter_eye], avg_end_percent )
+      
+      }}
+
+
+
+storage_matrix = as.tibble(storage_matrix)
+colnames(storage_matrix) = c("timeid", "eye", "avg_end_percent")
+scalars = left_join(scalars, storage_matrix)
+scalars$avg_end_percent = as.numeric(scalars$avg_end_percent)
+
+```
+
+## "end" of test
+
+* taking 15th frame prior to end since took average of last 30 frames (1 second)
+
+```{r}
+scalars = left_join(scalars, pupils %>% group_by(timeid, eye) %>% mutate(last_obs = last(centered) - 15) %>% ungroup() %>% select(timeid, eye, last_obs) %>% unique())
+
+```
+
+
+## Slope from min constriction to end
+
+```{r}
+scalars = scalars %>% group_by(timeid, eye) %>% mutate(slope = (avg_end_percent - min_constriction)/(last_obs - centered)) %>% ungroup()
+
+scalars %>% group_by(timeid, eye) %>% mutate(slope = (last_obs - centered)) %>% ungroup() %>% arrange(slope)
+```
+
+## area under the curve 
+
+```{r, }
+
+frame_minimum = scalars %>% select(timeid, frame_min, eye) %>% unique()
+
+
+pupils = left_join(pupils, frame_minimum)
+
+auc_all = pupils %>% filter(centered>=frame_min) %>% group_by(timeid, eye) %>% mutate(AUC = trapz(centered,percent_change)) %>% ungroup() %>% select(timeid, eye, AUC) %>% unique()
+
+scalars = left_join(scalars, auc_all)
+
+scalars$auc_duration = scalars$duration - scalars$frame_min
+
+scalars$AUC = scalars$AUC/scalars$auc_duration
+
+
+```
+
+
+* can flag by positive auc, 65pre2 at least has wrong starting point
+
+
+## Average size from point of minimum constriction to end of test 
+
+```{r}
+
+participant_vec = unique(pupils$timeid)
+
+eyes = c("Left", "Right")
+
+storage_matrix = matrix(NA, nrow = length(participant_vec)*2, ncol = 3)
+
+count = 0
+for (iter in 1:length(participant_vec)){
+  for(iter_eye in 1:2){
+    
+    count = count+1
+    
+    temp = pupils %>% filter(timeid == participant_vec[iter], eye == eyes[iter_eye])
+
+    if(nrow(temp)>0){
+    
+    temp_min = which.min(temp %>% filter(centered >=0) %>% arrange(centered) %>% select(yhat2) %>% pull())
+    
+    temp = temp[temp_min:nrow(temp), ] 
+    
+    avg_end_percent = mean(temp$percent_change)
+  
+    storage_matrix[count, ] = c(participant_vec[iter], eyes[iter_eye], avg_end_percent )
+      
+      }}}
+
+
+
+storage_matrix = as.tibble(storage_matrix)
+colnames(storage_matrix) = c("timeid", "eye", "avg_percent_change_min_end")
+
+scalars = left_join(scalars, storage_matrix)
+scalars$avg_percent_change_min_end = as.numeric(scalars$avg_percent_change_min_end)
+```
+
+
+## Slope from beginning of test to min constrction
+
+```{r}
+scalars$beginning_slope = scalars$min_constriction/scalars$frame_min
+
+```
+
+
+## Completion Rate 
+
+
+```{r}
+
+# n_obs = pupils %>% group_by(timeid, eye) %>% mutate(completed_obs = max(centered, na.rm=TRUE)) %>% select(timeid, eye, completed_obs) %>% unique() %>% ungroup()
+
+participant_id = pupils$timeid %>% unique()
+
+storage_matrix = matrix(NA, nrow = length(participant_id)*2, ncol = 3)
+
+eyes = c("Left", "Right")
+
+count = 0
+for (iter_eye in 1:2){
+  for (iter1 in 1:length(participant_id)){
+    count = count + 1
+    left_eye = pupils %>% filter(timeid == participant_id[iter1], eye == eyes[iter_eye], centered >=0) %>% select(timeid, eye, major_axis) #creating temporary data frame
+    
+    left_eye = left_eye[complete.cases(left_eye),]
+    # acf_clean = round(acf(left_eye$major_axis, pl = FALSE)$acf[2],4)
+
+    n_obs = nrow(left_eye) # number of data points in original
+
+    storage_matrix[count, ] = c(participant_id[iter1], n_obs, eyes[iter_eye])
+  }
+}
+
+storage_matrix = as.data.frame(storage_matrix)
+
+storage_matrix = rename(storage_matrix, timeid = V1)
+storage_matrix = rename(storage_matrix, completed_obs = V2)
+storage_matrix = rename(storage_matrix, eye = V3)
+
+
+storage_matrix %>% skimr::skim()
+
+scalars = left_join(scalars, storage_matrix)
+
+scalars$completed_obs = as.numeric(scalars$completed_obs)
+
+scalars %>% skimr::skim()
+
+```

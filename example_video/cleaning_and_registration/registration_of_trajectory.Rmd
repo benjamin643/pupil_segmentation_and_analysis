@@ -1,0 +1,270 @@
+---
+title: "registration of curves"
+output: html_document
+date: "2023-04-23"
+---
+## Registering curves based on steepest decrease between extremum and ending test based on jumps at end  
+
+```{r}
+
+## registration based on min/max 
+
+# ending based on distance from previous and next two 
+
+set.seed(27)
+# load pupils data 
+
+pupils = read_csv("/Users/benjaminsteinhart/Desktop/example_video/data_output/pupil_predictions_cleaned.csv")
+# 
+participant_vec = unique(pupils$timeid)
+#
+eyes = c("Left", "Right")
+
+# storage_matrix = matrix(NA, nrow = length(participant_vec)*2, ncol = 6)
+
+storage_matrix = matrix(NA, nrow = 1, ncol = 17)
+storage_matrix = as_tibble(storage_matrix)
+
+cols = c("timeid", "eye", "frame", "centered", "yhat2", "time", "major_axis", "minor_axis", "eccentricity", "centerx", "centery", "outliers", "predicted", "dist_from_origin", "med_y", "sd_y",  "outlier_manual")
+
+
+colnames(storage_matrix) = cols
+
+
+count = 0
+for (iter in 1:length(participant_vec)){
+
+
+
+  for(iter_eye in 1:2){
+  count = count+1
+
+prac = pupils %>% filter(timeid == participant_vec[iter], eye == eyes[iter_eye])
+
+
+if(nrow(prac > 30)){
+fit <- qgam(major_axis~ s(frame, k=25, bs="cs"), data=prac, qu = 0.5)
+
+new_data = data.frame(frame = seq(0, 1000, length.out = 1000))
+
+new_data$yhat2 = predict(fit, newdata = new_data)
+
+der_vec = NULL
+der_vec2 = NULL
+
+der_vec_max = NULL
+der_vec_min = NULL
+
+# first derivative
+for (i in 1:(nrow(new_data))){
+  if (i == 1){
+    der_vec[i] = 0
+  }
+  if (i>1){
+    der_vec[i] = new_data$yhat2[i+1] - new_data$yhat2[i]
+  }
+  if (i == nrow(new_data)) {
+    der_vec[i] = 0
+  }
+}
+
+####
+## first derivative max
+for (i in 1:(length(der_vec))){
+  der_vec_max[i] = if_else(der_vec[i] >=0  & der_vec[i+1] < 0, 1,0)
+}
+
+## first derivative min 
+for (i in 1:(length(der_vec))){
+  der_vec_min[i] = if_else(der_vec[i] <= 0  & der_vec[i+1]  > 0, 1,0)
+}
+
+
+new_data$max = der_vec_max
+
+new_data$min = der_vec_min
+
+new_data$extremum = new_data$max + new_data$min
+
+new_data = new_data %>% mutate(extremum = case_when(
+  extremum == "1" ~ "1",
+  extremum == "0" ~ "0",
+  TRUE ~ "1"
+)) # capturing edge points
+
+new_data$extremum = factor(new_data$extremum)
+
+new_data$der = der_vec
+
+ex = new_data %>% filter(extremum == "1", frame <= 500) %>% mutate(slope = yhat2 - lead(yhat2))
+
+beginning = (ex %>% arrange(-slope) %>% select(frame))
+
+### frame identified as max before at or before start of test. 
+beginning = round(beginning[1,])
+
+new_data$beginning_frame = beginning
+
+new_data$centered = round(new_data$frame - new_data$beginning_frame)
+
+new_data = as_tibble(new_data)
+
+##### Ending test 
+
+prac2 = prac[!is.na(prac$major_axis), ]
+
+prac2$frame_id = seq(1, nrow(prac2))
+
+prac2 = prac2 %>% select(frame, frame_id, major_axis)
+
+if(nrow(prac2 > 30)){
+
+der_vec = NULL
+der_vec2 = NULL
+der_prev = NULL
+
+
+der_vec_max = NULL
+der_vec_min = NULL
+
+der_vec_max2 = NULL
+der_vec_min2 = NULL
+
+curv_vec = NULL
+curv_vec_max = NULL
+curv_vec_min = NULL
+
+# previous
+for (i in 1:(nrow(prac2))){
+  if (i == 1){
+    der_prev[i] = 0
+  }
+  if (i>1){
+    der_prev[i] = abs(prac2$major_axis[i] - prac2$major_axis[i-1])
+  }
+}
+
+# first derivative
+for (i in 1:(nrow(prac2))){
+  if (i == 1){
+    der_vec[i] = 0
+  }
+  if (i>1){
+    der_vec[i] = prac2$major_axis[i+1] - prac2$major_axis[i]
+  }
+  if (i == nrow(prac2)) {
+    der_vec[i] = 0
+  }
+}
+
+# first derivative 2 ahead 
+for (i in 1:(nrow(prac2))){
+  if (i == 1){
+    der_vec2[i] = 0
+  }
+  if (i>1){
+    der_vec2[i] = prac2$major_axis[i+2] - prac2$major_axis[i + 1]
+  }
+  if (i >= nrow(prac2)-1) {
+    der_vec2[i] = 0
+  }
+}
+
+prac2$prev = der_prev
+
+prac2$first = der_vec
+
+prac2$first2 = der_vec2
+
+prac2$prac = abs((prac2$first + prac2$first2))/2
+# 
+ex = prac2 %>% filter(frame_id > 750, prev<5, prac > 10) %>% arrange(frame) %>% select(frame) 
+
+ending_fin = ex[1, ] %>% pull
+
+if (is.na(ending_fin) == TRUE){
+  ending_fin = max(prac2$frame, na.rm= TRUE)
+}
+
+
+# 
+prac2 = prac2 %>% filter(frame <= (ending_fin - 1))
+
+
+#####
+
+
+fit <- qgam(major_axis~ s(frame, k=25, bs="cs"), data=prac2, qu = 0.5)
+
+new_data2 = data.frame(frame = seq(0, max(prac2$frame, na.rm=TRUE), length.out = max(prac2$frame, na.rm=TRUE)))
+
+
+new_data2$yhat2 = predict(fit, newdata = new_data2)
+
+new_data2$timeid = participant_vec[iter]
+new_data2$eye =eyes[iter_eye]
+
+new_data2$frame = round(new_data2$frame)
+
+###
+new_data$timeid = participant_vec[iter]
+new_data$eye =eyes[iter_eye]
+
+new_data$frame = round(new_data$frame)
+
+
+new_data = new_data %>% select(timeid, frame, centered, eye)
+###
+temp = left_join(new_data2, new_data)
+
+temp = left_join(temp, prac)
+
+storage_matrix = full_join(storage_matrix, temp)
+
+}}}}
+
+
+```
+
+
+```{r}
+## Creating Percent Change Variable 
+initial = storage_matrix %>% filter(centered == "0") %>% group_by(timeid, eye) %>%  mutate(initial =first(yhat2)) %>% ungroup() %>% select(timeid, eye, initial)
+
+storage_matrix = left_join(storage_matrix, initial)
+
+storage_matrix = storage_matrix %>% group_by(timeid, eye) %>% mutate(percent_change = ((yhat2 - initial) / initial)*100) %>% ungroup()
+storage_matrix = storage_matrix %>% select(-initial)
+
+storage_matrix %>% skimr::skim()
+
+temp_storage = storage_matrix[!is.na(storage_matrix$timeid),]
+
+```
+
+## Final Trajectory Plots
+
+```{R}
+
+right  = ggplot(storage_matrix %>% filter(centered >= 0, eye == "Right"), aes(x = centered, y = percent_change, fill = timeid)) + geom_line(alpha = 0.5)  + theme(legend.position = "none") + ggtitle("C") + ylab("Percent Change from Baseline") + theme(plot.title = element_text(size = 20, face = "bold")) + theme(plot.title = element_text(hjust = 0.5))
+
+left  = ggplot(storage_matrix %>% filter(centered >= 0, eye == "Left"), aes(x = centered, y = percent_change, fill = timeid)) + geom_line(alpha = 0.5)  + theme(legend.position = "none") + ggtitle("C") + ylab("Percent Change from Baseline") + theme(plot.title = element_text(size = 20, face = "bold")) + theme(plot.title = element_text(hjust = 0.5))
+
+p = ggarrange(right, left, ncol = 2)
+
+pdf("/Users/benjaminsteinhart/Desktop/example_video/results/registered_curve.pdf")
+print(p)
+dev.off()
+
+```
+
+
+
+# Save fully cleaned data
+
+```{r}
+
+
+write.csv(as.data.frame(storage_matrix), file = "/Users/benjaminsteinhart/Desktop/example_video/data_output/pupils_clean_register.csv")
+
+```

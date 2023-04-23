@@ -1,0 +1,216 @@
+---
+title: "Cleaning Curves - Labels Modified for example Video"
+output: html_document
+date: "2023-04-23"
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(tidyverse)
+library(ggpubr)
+library(mgcv)
+library(qgam)
+
+library(tseries) # for autocorrelation function 
+
+library("grid")
+library("ggplotify")
+
+```
+
+# Output full participants
+
+```{R}
+## for practice video results
+pupils = read_csv("/Users/benjaminsteinhart/Desktop/example_video/data_output/pupil_predictions.csv")
+```
+
+
+# Formatting Data
+
+```{r}
+## Below creates a unique time specific id for each participant. Data is then converted to long format 
+
+pupils$timeid = substr(pupils$Image, 1, 11)
+pupils$frame = parse_number(substr(pupils$Image, 19, 28))
+
+# if fixed in the program, can delete this
+pupils$TimeR = pupils$TimeR - pupils$Time # right eye segmented after left but time was not reset so subtracting that time here to get true right time 
+
+# formatting into long format
+# center x coordinate for right and left eye
+centerx = pupils %>% select(Image, centerx, centerxR) %>% pivot_longer(cols = c("centerx", "centerxR"), names_to ="eye", values_to = "centerx") %>% mutate(eye = if_else(eye == "centerx","Left", "Right"))
+
+# center y coordinate for right and left eye
+centery = pupils %>% select(Image, centery, centeryR, frame, timeid) %>% pivot_longer(cols = c("centery", "centeryR"), names_to ="eye", values_to = "centery") %>% mutate(eye = if_else(eye == "centery","Left", "Right"))
+
+# time for right and left eye
+time = pupils %>% select(Image, Time, TimeR) %>% pivot_longer(cols = c("Time", "TimeR"), names_to ="eye", values_to = "time") %>% mutate(eye = if_else(eye == "Time","Left", "Right"))
+
+# major axis size right and left eye
+major_axis = pupils %>% select(Image, major_axis, major_axisR) %>% pivot_longer(cols = c("major_axis", "major_axisR"), names_to ="eye", values_to = "major_axis") %>% mutate(eye = if_else(eye == "major_axis","Left", "Right"))
+
+# minor axis size right and left eye
+minor_axis = pupils %>% select(Image, minor_axis, minor_axisR) %>% pivot_longer(cols = c("minor_axis", "minor_axisR"), names_to ="eye", values_to = "minor_axis") %>% mutate(eye = if_else(eye == "minor_axis","Left", "Right"))
+
+# eccentricity size right and left eye
+eccentricity = pupils %>% select(Image, eccentricity, eccentricityR) %>% pivot_longer(cols = c("eccentricity", "eccentricityR"), names_to ="eye", values_to = "eccentricity") %>% mutate(eye = if_else(eye == "eccentricity","Left", "Right"))
+
+## Joining long data sets
+
+output = left_join(centerx, centery) %>% left_join(.,time) %>% left_join(.,major_axis) %>% left_join(.,minor_axis) %>% left_join(.,eccentricity) 
+
+output = output %>% select(timeid, frame, eye, time, major_axis, minor_axis, eccentricity, centerx, centery)
+
+# factoring eye
+output$eye = factor(output$eye)
+
+## output data set is now long formatted data 
+
+```
+
+
+# View uncleaned trajectories 
+```{r}
+pdf("/Users/benjaminsteinhart/Desktop/example_video/results/original_pupil_estimates.pdf")
+plot_original = ggplot(output, aes(x = frame, y = major_axis)) + geom_point() + facet_wrap(~eye) + ggtitle("Original pupil size estimates")+ylab("pupil size")
+print(plot_original)
+dev.off()
+
+```
+
+## Removing based on qgam 6 se from Major Axis
+
+```{r}
+# participant_id = output$timeid %>% unique()
+eyes = c("Left", "Right")
+
+participant_id = output$timeid %>% unique()
+
+df_qgam <- data.frame(timeid = character(),
+                 frame=integer(),
+                 eye=character(),
+                 time= double(),
+                 major_axis= double(),
+                 minor_axis =  double(),
+                 eccentricity =  double(),
+                 centerx =  double(),
+                 centery = double(),
+                 outliers = integer(),
+                 predicted = double(),
+              
+                 stringsAsFactors=FALSE)
+
+count = 0 # Count being used to properly store results for each row in storage_matrix
+
+for (iter_eye in 1:2){
+  for (iter1 in 1:length(participant_id)){
+    # 
+    left_eye = output %>% filter(timeid == participant_id[iter1], eye == eyes[iter_eye]) #creating temporary data frame
+  # 
+    left_eye = left_eye[complete.cases(left_eye),] ## taking complete cases from temp data 
+  
+    if(nrow(left_eye) >= 50){ ## this condition ensures that a model will be fit without error 
+  
+    quantile_gam_left = qgam(major_axis~ s(frame, k=25, bs="cs"),
+  										data = left_eye,
+  										qu = 0.5)
+  
+    p <- predict(quantile_gam_left, type = "link", se.fit = TRUE)# predicted values
+  
+      upr <- p$fit + (6*p$se.fit) # upper threshold
+      lwr <- p$fit - (6*p$se.fit) # lower threshold
+  
+      majors = left_eye$major_axis # getting vector from temp data frame to check for outliers
+      new_vec = NULL # initiating vec to keep track of whether or not point is within SE's
+  
+      for (i in 1:length(p$fit)){
+        new_vec[i] = if_else(majors[i] < upr[i] & majors[i] > lwr[i], 1, 0) # checks whether point is within x SE's
+          }
+  
+      left_eye$outliers = new_vec # attaches outlier identifying vec to temp data
+      left_eye$predicted = p$fit
+  
+      temp2 = left_eye %>% filter(outliers == "1") # new cleaned data set
+  
+      df_qgam = full_join(df_qgam, temp2)
+  
+    }}
+}
+  
+```
+
+
+## Refit new cleaned points with qgam 
+
+```{r}
+
+participant_id = output$timeid %>% unique()
+
+pupils_fin <- data.frame(timeid = character(),
+                 frame=integer(),
+                 eye=character(),
+                 time= double(),
+                 major_axis= double(),
+                 minor_axis =  double(),
+                 eccentricity =  double(),
+                 centerx =  double(),
+                 centery = double(),
+                 outliers = integer(),
+                 predicted = double(),
+              
+                 stringsAsFactors=FALSE)
+
+for (iter_eye in 1:2){
+    # 
+    left_eye = df_qgam %>% filter( eye == eyes[iter_eye]) #creating temporary data frame
+  # 
+    left_eye = left_eye[complete.cases(left_eye),] ## taking complete cases from temp data 
+  
+    if(nrow(left_eye) >= 50){ ## this condition ensures that a model will be fit without error 
+  
+    quantile_gam_left = qgam(major_axis~ s(frame, k=25, bs="cs"),
+  										data = left_eye,
+  										qu = 0.5)
+  
+     p <- predict(quantile_gam_left, type = "link", se.fit = TRUE)# predicted values
+  
+      left_eye$predicted = p$fit
+  
+      pupils_fin = full_join(pupils_fin, left_eye)
+  
+    }}
+  
+# save pupils data
+
+```
+
+
+
+## Getting plots
+
+```{r}
+
+p1 = ggplot(pupils_fin, aes(x = frame, y = major_axis)) +ylab("pupil size") + geom_point() + facet_wrap(~eye) + ggtitle("Original Estimates (post QGAM cleaning)")
+
+p2 = ggplot(pupils_fin, aes(x = frame, y = predicted)) +ylab("pupil size") + geom_point() + facet_wrap(~eye) + ggtitle("New Smoothed Trajectory (QGAM Predictions)")
+
+
+pdf("/Users/benjaminsteinhart/Desktop/example_video/results/cleaned_pupil_estimates.pdf")
+ggarrange(plot_original, p1, p2, nrow = 3)
+dev.off()
+```
+
+# Save data 
+
+
+```{r}
+pupils_fin = as_tibble(pupils_fin)
+
+filename = "pupils.csv"
+
+write_csv(pupils_fin, file = "/Users/benjaminsteinhart/Desktop/example_video/data_output/pupil_predictions_cleaned.csv")
+
+```
+
