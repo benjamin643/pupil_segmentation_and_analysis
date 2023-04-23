@@ -28,5 +28,8 @@ This repository contains code that was used to create a segmentation pipeline fr
   + STEP6 (gee_tables.Rmd): This script takes several of the scalar metrics that were calculated in STEP5 and then analyzes the data using generalized estimating equations (GEE). We analyzed the data at the post event as well as looking at the difference (POST - PRE). The script outputs some summary tables as well as some summary plots. 
   + STEP7 (r_plots.Rmd): Similar to the useful_figures file, this script creates a wide variety of plots that were used in the paper as well as a poster presentation. It creates plots for both scalar features as well as descriptive plots of the process as a whole, taking as inputs the raw and cleaned pupil size estimates. 
   
+* Figures
+  + includes figures that were used in the paper.
+  
   
   
