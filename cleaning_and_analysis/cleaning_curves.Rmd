@@ -18,26 +18,19 @@ library(ggplotify)
 
 # Output full participants
 
+remove: Time, TimeR, eccentricity, minor_axis/R
+
 ```{R}
+## load raw trajectory data
+output = readRDS(here::here("data", "raw_pupil_size_predictions.rds")) %>%
+  mutate(timeid = substr(Image, 1, 11),
+         frame = parse_number(substr(Image, 20, 28))) %>%
+  select(-contains("minor_axis"), -contains("Time"), -eccentricity)
 
-setwd("/Users/benjaminsteinhart/Desktop/image_seg/results/full_output_water_2part/")
-
-files <- dir(path = "/Users/benjaminsteinhart/Desktop/image_seg/results/full_output_water_2part/",pattern = "*.csv")
-
-
-pupils <- files %>%
-  map(read_csv) %>%    # read in all the files individually, using
-                       # the function read_csv() from the readr package
-  reduce(rbind) 
-
-
-
-## for practice video results
-pupils = read_csv("/Users/benjaminsteinhart/Desktop/example_video/pupil_predictions.csv")
 ```
 
 ## Removing based on qgam 6 se from Major Axis
-
+  
 ```{r}
 # participant_id = output$timeid %>% unique()
 eyes = c("Left", "Right")
@@ -166,6 +159,8 @@ for (iter_eye in 1:2){
 pupils_fin = as_tibble(pupils_fin)
 
 filename = "pupils.csv"
+
+writeRDS()
 
 # write_csv(pupils_fin, file = here::here("data", filename))
 

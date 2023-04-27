@@ -1,7 +1,7 @@
 # pupil_segmentation_and_analysis
 
-This repository contains code was used to reproduce results from the paper, ``[A Video Segmentation Pipeline for Assessing Changes in Pupil
-Response to Light After Cannabis Consumption](https://www.biorxiv.org/content/biorxiv/early/2023/03/21/2023.03.17.533144.full.pdf)'',  which describes a pipeline to analyze videos that capture pupil response to light inside headset goggles. 
+This repository contains code was used to reproduce results from the paper, [A Video Segmentation Pipeline for Assessing Changes in Pupil
+Response to Light After Cannabis Consumption](https://www.biorxiv.org/content/biorxiv/early/2023/03/21/2023.03.17.533144.full.pdf),  which describes a pipeline to analyze videos that capture pupil response to light inside headset goggles. 
 
 
 ## Example Video Folder
