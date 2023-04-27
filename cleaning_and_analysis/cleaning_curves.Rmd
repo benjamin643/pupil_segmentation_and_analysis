@@ -22,10 +22,7 @@ remove: Time, TimeR, eccentricity, minor_axis/R
 
 ```{R}
 ## load raw trajectory data
-output = readRDS(here::here("data", "raw_pupil_size_predictions.rds")) %>%
-  mutate(timeid = substr(Image, 1, 11),
-         frame = parse_number(substr(Image, 20, 28))) %>%
-  select(-contains("minor_axis"), -contains("Time"), -eccentricity)
+output = readRDS(here::here("data", "raw_pupil_size_predictions.rds"))
 
 ```
 
@@ -40,7 +37,6 @@ participant_id = output$timeid %>% unique()
 df_qgam <- data.frame(timeid = character(),
                  frame=integer(),
                  eye=character(),
-                 time= double(),
                  major_axis= double(),
                  minor_axis =  double(),
                  eccentricity =  double(),
@@ -101,8 +97,6 @@ df_qgam = df_qgam %>% mutate(dist_from_origin = sqrt(centerx^2 +  centerx^2))
 df_qgam = df_qgam %>% group_by(timeid, eye) %>% mutate(med_y = median(dist_from_origin, na.rm= TRUE), sd_y = sd(dist_from_origin, na.rm=TRUE)) %>% ungroup()
 
 df_qgam = df_qgam  %>% group_by(timeid, eye) %>% filter(dist_from_origin < med_y + 1.5*sd_y,dist_from_origin > med_y - 1.5*sd_y)
-
-  
 ```
 
 
@@ -115,7 +109,6 @@ participant_id = output$timeid %>% unique()
 pupils_fin <- data.frame(timeid = character(),
                  frame=integer(),
                  eye=character(),
-                 time= double(),
                  major_axis= double(),
                  minor_axis =  double(),
                  eccentricity =  double(),

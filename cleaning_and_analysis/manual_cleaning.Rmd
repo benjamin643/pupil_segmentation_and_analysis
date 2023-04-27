@@ -33,13 +33,13 @@ files <- dir(path = "/Users/benjaminsteinhart/Desktop/image_seg/results/full_out
 original_start <- files %>%
   map(read_csv) %>%    # read in all the files individually, using
                        # the function read_csv() from the readr package
-  reduce(rbind) 
+  reduce(rbind)
 
 original_start$timeid = substr(original_start$Image, 1, 11)
 original_start$frame = parse_number(substr(original_start$Image, 20, 28))
 
 # if fixed in the program, can delete this
-original_start$TimeR = original_start$TimeR - original_start$Time # right eye segmented after left but time was not reset so subtracting that time here to get true right time 
+original_start$TimeR = original_start$TimeR - original_start$Time # right eye segmented after left but time was not reset so subtracting that time here to get true right time
 
 # formatting into long format
 # center x coordinate for right and left eye
@@ -62,7 +62,7 @@ eccentricity = original_start %>% select(Image, eccentricity, eccentricityR) %>%
 
 ## Joining long data sets
 
-original = left_join(centerx, centery) %>% left_join(.,time) %>% left_join(.,major_axis) %>% left_join(.,minor_axis) %>% left_join(.,eccentricity) 
+original = left_join(centerx, centery) %>% left_join(.,time) %>% left_join(.,major_axis) %>% left_join(.,minor_axis) %>% left_join(.,eccentricity)
 
 original = original %>% select(timeid, frame, eye, time, major_axis, minor_axis, eccentricity, centerx, centery)
 
@@ -76,13 +76,15 @@ original = original %>% group_by(timeid, eye) %>%  mutate(initial =first(major_a
 
 original = original %>% group_by(timeid, eye) %>% mutate(percent_change = ((major_axis - initial) / initial)*100) %>% ungroup()
 
+
+
 ```
 
 
-```{r}
-original = original %>% select(-percent_change)
+# load data 
 
-original = original %>% select(-initial)
+```{r}
+# original = read in raw data 
 
 ```
 
@@ -94,7 +96,8 @@ original = original %>% select(-initial)
 set.seed(27)
 # load pupils data 
 
-pupils = read_csv(here::here("data", "pupils.csv"))
+pupils = read_csv(here::here("data", "pupils.csv")) # read in data from cleaning curves document
+
 
 ```
 
@@ -254,9 +257,6 @@ storage_matrix %>% skimr::skim()
 # storage_matrix %>% skimr::skim()
 ```
 
-
-
-
 ## Flagging those who have acf below 0.7
 
 ```{r, eval = FALSE}
@@ -286,91 +286,6 @@ jump_check  = original %>% filter(abs(jump) > 10) %>% group_by(timeid, eye) %>% 
 jump_check %>% length()
 
 ```
-
-
-# Plots of potentially messy graphs
-
-
-# ACF Messy
-
-```{r, eval = FALSE}
-for (i in 1:length(acf_check)){
-x = original %>% filter(timeid == acf_check[i], eye == "Left") %>% select(major_axis) %>% pull()
-x =x[!is.na(x)]
-y = acf(x, pl = FALSE)$acf[2]
-
-plot_major = ggplot(original %>% filter(timeid == acf_check[i], eye == "Left"), aes(x = frame, y = major_axis)) + geom_point() + ylab("Major Axis Size") + labs(title = paste("Original : ACF = ",y),
-              subtitle = paste("N = ",length(x)))
-
-plot_major_cleanQ = ggplot(pupils %>% filter(timeid ==acf_check[i], eye == "Left"), aes(x = frame, y = major_axis)) + geom_point() + ylab("Major Axis Size") + geom_line(aes(y = pupils %>% filter(timeid == acf_check[i], eye == "Left") %>% select(predicted) %>% pull()), color = "red")  
-
-x = original %>% filter(timeid == acf_check[i], eye == "Right") %>% select(major_axis) %>% pull()
-x =x[!is.na(x)]
-y = acf(x, pl = FALSE)$acf[2]
-
-plot_major_right = ggplot(original %>% filter(timeid == acf_check[i], eye == "Right"), aes(x = frame, y = major_axis)) + geom_point() + ylab("Major Axis Size") + labs(title = paste("Original : ACF = ",y),
-              subtitle = paste("N = ",length(x)))
-
-plot_major_cleanQ_right = ggplot(pupils %>% filter(timeid ==acf_check[i], eye == "Right"), aes(x = frame, y = major_axis)) + geom_point() + ylab("Major Axis Size") + geom_line(aes(y = pupils %>% filter(timeid == acf_check[i], eye == "Right") %>% select(predicted) %>% pull()), color = "red")  
-
-plot = ggarrange(plot_major, plot_major_cleanQ, plot_major_right, plot_major_cleanQ_right)
-
-
-print(annotate_figure(plot, top = text_grob(acf_check[i],
-               color = "red", face = "bold", size = 14)))
-}
-```
-
-
-# No Observations
-
-```{r, eval = FALSE}
-for (i in 1:length(no_obs_check)){
-
-x = original %>% filter(timeid == no_obs_check[i], eye == "Left") %>% select(major_axis) %>% pull()
-x =x[!is.na(x)]
-y = acf(x, pl = FALSE)$acf[2]
-
-plot_major = ggplot(original %>% filter(timeid == no_obs_check[i], eye == "Left"), aes(x = frame, y = major_axis)) + geom_point() + ylab("Major Axis Size") 
-         
-
-print(annotate_figure(plot_major, top = text_grob(no_obs_check[i], 
-               color = "red", face = "bold", size = 14)))
-}
-```
-
-# Jumps
-
-```{r, eval = FALSE}
-for (i in 1:length(jump_check)){
-
-
-x = original %>% filter(timeid == jump_check[i], eye == "Left") %>% select(major_axis) %>% pull()
-x =x[!is.na(x)]
-y = round(acf(x, pl = FALSE)$acf[2],3)
-
-plot_major = ggplot(original %>% filter(timeid == jump_check[i], eye == "Left"), aes(x = frame, y = major_axis)) + geom_point() + ylab("Major Axis Size") + labs(title = paste("Left Eye: ACF = ",y),
-              subtitle = paste("N = ",length(x)))
-
-plot_major_cleanQ = ggplot(pupils %>% filter(timeid ==jump_check[i], eye == "Left"), aes(x = frame, y = major_axis)) + geom_point() + ylab("Major Axis Size") + geom_line(aes(y = pupils %>% filter(timeid == jump_check[i], eye == "Left") %>% select(predicted) %>% pull()), color = "red")  + ggtitle("Left Cleaned")
-
-x = original %>% filter(timeid == jump_check[i], eye == "Right") %>% select(major_axis) %>% pull()
-x =x[!is.na(x)]
-y = round(acf(x, pl = FALSE)$acf[2],3)
-
-plot_major_right = ggplot(original %>% filter(timeid == jump_check[i], eye == "Right"), aes(x = frame, y = major_axis)) + geom_point() + ylab("Major Axis Size") + labs(title = paste("Right Eye: ACF = ",y),
-              subtitle = paste("N = ",length(x)))
-
-plot_major_cleanQ_right = ggplot(pupils %>% filter(timeid ==jump_check[i], eye == "Right"), aes(x = frame, y = major_axis)) + geom_point() + ylab("Major Axis Size") + geom_line(aes(y = pupils %>% filter(timeid == jump_check[i], eye == "Right") %>% select(predicted) %>% pull()), color = "red") + ggtitle("Right Cleaned")  
-
-plot = ggarrange(plot_major, plot_major_cleanQ, plot_major_right, plot_major_cleanQ_right)
-
-
-print(annotate_figure(plot, top = text_grob(jump_check[i],
-               color = "red", face = "bold", size = 14)))
-}
-```
-
 
 # To manually clean 
 

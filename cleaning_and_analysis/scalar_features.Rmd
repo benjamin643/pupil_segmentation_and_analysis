@@ -31,7 +31,7 @@ theme_set(theme_bw() + theme(legend.position = "bottom"))
 # Load data 
 
 ```{r}
-
+# load pupils full clean from the manual cleaning document
 
 ```
 
