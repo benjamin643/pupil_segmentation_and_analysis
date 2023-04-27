@@ -10,11 +10,9 @@ library(tidyverse)
 library(ggpubr)
 library(mgcv)
 library(qgam)
-
 library(tseries) # for autocorrelation function 
-
-library("grid")
-library("ggplotify")
+library(grid)
+library(ggplotify)
 
 ```
 
