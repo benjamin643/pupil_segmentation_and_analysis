@@ -1,104 +1,38 @@
 ---
 title: "Manual Cleaning"
-output: html_document
-date: '2022-06-27'
+output:
+  html_document: 
+    toc: true
+    toc_float: true
+    code_folding: hide
 ---
 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+
 library(tidyverse)
 library(ggpubr)
 library(mgcv)
 library(qgam)
-
-library(tseries) # for autocorrelation function 
-
-
-library("grid")
-library("ggplotify")
+library(tseries) 
 
 ```
 
-
-
-```{R}
-
-# original data
-setwd("/Users/benjaminsteinhart/Desktop/image_seg/results/full_output_water_2part/")
-
-files <- dir(path = "/Users/benjaminsteinhart/Desktop/image_seg/results/full_output_water_2part/",pattern = "*.csv")
-
-
-original_start <- files %>%
-  map(read_csv) %>%    # read in all the files individually, using
-                       # the function read_csv() from the readr package
-  reduce(rbind)
-
-original_start$timeid = substr(original_start$Image, 1, 11)
-original_start$frame = parse_number(substr(original_start$Image, 20, 28))
-
-# if fixed in the program, can delete this
-original_start$TimeR = original_start$TimeR - original_start$Time # right eye segmented after left but time was not reset so subtracting that time here to get true right time
-
-# formatting into long format
-# center x coordinate for right and left eye
-centerx = original_start %>% select(Image, centerx, centerxR) %>% pivot_longer(cols = c("centerx", "centerxR"), names_to ="eye", values_to = "centerx") %>% mutate(eye = if_else(eye == "centerx","Left", "Right"))
-
-# center y coordinate for right and left eye
-centery = original_start %>% select(Image, centery, centeryR, frame, timeid) %>% pivot_longer(cols = c("centery", "centeryR"), names_to ="eye", values_to = "centery") %>% mutate(eye = if_else(eye == "centery","Left", "Right"))
-
-# time for right and left eye
-time = original_start %>% select(Image, Time, TimeR) %>% pivot_longer(cols = c("Time", "TimeR"), names_to ="eye", values_to = "time") %>% mutate(eye = if_else(eye == "Time","Left", "Right"))
-
-# major axis size right and left eye
-major_axis = original_start %>% select(Image, major_axis, major_axisR) %>% pivot_longer(cols = c("major_axis", "major_axisR"), names_to ="eye", values_to = "major_axis") %>% mutate(eye = if_else(eye == "major_axis","Left", "Right"))
-
-# minor axis size right and left eye
-minor_axis = original_start %>% select(Image, minor_axis, minor_axisR) %>% pivot_longer(cols = c("minor_axis", "minor_axisR"), names_to ="eye", values_to = "minor_axis") %>% mutate(eye = if_else(eye == "minor_axis","Left", "Right"))
-
-# eccentricity size right and left eye
-eccentricity = original_start %>% select(Image, eccentricity, eccentricityR) %>% pivot_longer(cols = c("eccentricity", "eccentricityR"), names_to ="eye", values_to = "eccentricity") %>% mutate(eye = if_else(eye == "eccentricity","Left", "Right"))
-
-## Joining long data sets
-
-original = left_join(centerx, centery) %>% left_join(.,time) %>% left_join(.,major_axis) %>% left_join(.,minor_axis) %>% left_join(.,eccentricity)
-
-original = original %>% select(timeid, frame, eye, time, major_axis, minor_axis, eccentricity, centerx, centery)
-
-# factoring eye
-original$eye = factor(original$eye)
-
-## Creating percent change variable
-
-
-original = original %>% group_by(timeid, eye) %>%  mutate(initial =first(major_axis)) %>% ungroup()
-
-original = original %>% group_by(timeid, eye) %>% mutate(percent_change = ((major_axis - initial) / initial)*100) %>% ungroup()
-
-
-
-```
-
-
-# load data 
+# Load data
 
 ```{r}
-# original = read in raw data 
-
-```
-
+## load raw trajectory data
+original = readRDS(here::here("data", "raw_pupil_size.rds"))
 
 
-```{r}
-# cleaned data
-
-set.seed(27)
-# load pupils data 
-
-pupils = read_csv(here::here("data", "pupils.csv")) # read in data from cleaning curves document
-
-
+# loaded data cleaned by qgams, and calculate percent change
+pupils <- readRDS(file = here::here("data", "cleaned_pupil.rds")) %>%
+  group_by(timeid, eye) %>%
+  mutate(initial =first(major_axis),
+         percent_change = ((major_axis - initial) / initial)*100) %>%
+  ungroup() %>%
+  mutate(eye = factor(eye))
 ```
 
 
@@ -110,182 +44,9 @@ Identified participants that may need cleaning by looking at ACF and also jumps 
 
 * Jumps: 37 out of 201
 
-* total 90 unique (all jumps also in poor acf.)
+* total 90 unique (all jumps also had poor acf)
 
 * Exact count of how many required cleaning? (TBD: 40-50)
-
-# Flagging participants who may need to be cleaned  manually 
-
-## Calculating ACF and N missing for each particpant - time point prior to cleaning 
-
-```{r, eval = FALSE}
-
-## probably want to check between 3 and 6 standard deviations away 
-
-## specify nrow of matrix
-
-# nrow = len(timeid)
-
-participant_id = original$timeid %>% unique()
-
-storage_matrix = matrix(NA, nrow = length(participant_id)*2, ncol = 4)
-
-eyes = c("Left", "Right")
-
-count = 0
-for (iter_eye in 1:2){
-  for (iter1 in 1:length(participant_id)){
-    count = count + 1
-    left_eye = original %>% filter(timeid == participant_id[iter1], eye == eyes[iter_eye]) #creating temporary data frame
-    left_eye = left_eye[complete.cases(left_eye),]
-  #
-    if (nrow(left_eye) > 1){
-      ## taking complete cases from temp data
-  
-    acf_no_clean = round(acf(left_eye$major_axis, pl = FALSE)$acf[2],4)
-  
-    n_obs = nrow(left_eye) # number of data points in original
-  
-    storage_matrix[count, ] = c(participant_id[iter1], as.numeric(acf_no_clean), n_obs, eyes[iter_eye])
-    }
-  
-    if (nrow(left_eye)<1){
-        storage_matrix[iter1, ] = c(participant_id[count], "NA", nrow(left_eye), eyes[iter_eye])
-    }
-  }
-}
-
-storage_matrix = as.data.frame(storage_matrix)
-
-storage_matrix = rename(storage_matrix, timeid = V1)
-storage_matrix = rename(storage_matrix, acf_original = V2)
-storage_matrix = rename(storage_matrix, completed_obs = V3)
-storage_matrix = rename(storage_matrix, eyes = V4)
-
-
-storage_matrix$acf_original = as.numeric(storage_matrix$acf_original)
-
-storage_matrix %>% skimr::skim()
-
-#########
-#########
-#########
-#########
-# participant_id = pupils$timeid %>% unique()
-# 
-# storage_matrix = matrix(NA, nrow = length(participant_id)*2, ncol = 4)
-# 
-# eyes = c("Left", "Right")
-# 
-# count = 0
-# for (iter_eye in 1:2){
-#   for (iter1 in 1:length(participant_id)){
-#     count = count + 1
-#     left_eye = pupils %>% filter(timeid == participant_id[iter1], eye == eyes[iter_eye]) #creating temporary data frame
-#     left_eye = left_eye[complete.cases(left_eye),]
-#   #
-#     if (nrow(left_eye) > 1){
-#       ## taking complete cases from temp data
-#   
-#     acf_no_clean = round(acf(left_eye$major_axis, pl = FALSE)$acf[2],4)
-#   
-#     n_obs = nrow(left_eye) # number of data points in original
-#   
-#     storage_matrix[count, ] = c(participant_id[iter1], as.numeric(acf_no_clean), n_obs, eyes[iter_eye])
-#     }
-#   
-#     if (nrow(left_eye)<1){
-#         storage_matrix[iter1, ] = c(participant_id[count], "NA", nrow(left_eye), eyes[iter_eye])
-#     }
-#   }
-# }
-# 
-# storage_matrix = as.data.frame(storage_matrix)
-# 
-# storage_matrix = rename(storage_matrix, timeid = V1)
-# storage_matrix = rename(storage_matrix, acf_original = V2)
-# storage_matrix = rename(storage_matrix, completed_obs = V3)
-# storage_matrix = rename(storage_matrix, eyes = V4)
-# 
-# 
-# storage_matrix$acf_original = as.numeric(storage_matrix$acf_original)
-# 
-# storage_matrix %>% skimr::skim()
-
-#### afc for cleaned
-# 
-# 
-# participant_id = pupils$timeid %>% unique()
-# 
-# storage_matrix = matrix(NA, nrow = length(participant_id)*2, ncol = 4)
-# 
-# eyes = c("Left", "Right")
-# 
-# count = 0
-# for (iter_eye in 1:2){
-#   for (iter1 in 1:length(participant_id)){
-#     count = count + 1
-#     left_eye = pupils %>% filter(timeid == participant_id[iter1], eye == eyes[iter_eye]) #creating temporary data frame
-#     left_eye = left_eye[complete.cases(left_eye),]
-#   #
-#     if (nrow(left_eye) > 1){
-#       ## taking complete cases from temp data
-#   
-#     acf_no_clean = round(acf(left_eye$major_axis, pl = FALSE)$acf[2],4)
-#   
-#     n_obs = nrow(left_eye) # number of data points in original
-#   
-#     storage_matrix[count, ] = c(participant_id[iter1], as.numeric(acf_no_clean), n_obs, eyes[iter_eye])
-#     }
-#   
-#     if (nrow(left_eye)<1){
-#         storage_matrix[iter1, ] = c(participant_id[count], "NA", nrow(left_eye), eyes[iter_eye])
-#     }
-#   }
-# }
-# 
-# storage_matrix = as.data.frame(storage_matrix)
-# 
-# storage_matrix = rename(storage_matrix, timeid = V1)
-# storage_matrix = rename(storage_matrix, acf_original = V2)
-# storage_matrix = rename(storage_matrix, completed_obs = V3)
-# storage_matrix = rename(storage_matrix, eyes = V4)
-# 
-# 
-# storage_matrix$acf_original = as.numeric(storage_matrix$acf_original)
-# 
-# storage_matrix %>% skimr::skim()
-```
-
-## Flagging those who have acf below 0.7
-
-```{r, eval = FALSE}
-acf_check = storage_matrix %>% filter(acf_original <=0.7) %>% select(timeid) %>% pull()
-
-acf_check %>% length()
-```
-
-## Flagging those who little or no predicted pupil sizes (below 400)
-
-```{r, eval = FALSE}
-no_obs_check = original %>% group_by(timeid, eye) %>% mutate(completed_obs = n()) %>% ungroup() %>%  filter(completed_obs <400) %>% select(timeid)  %>% unique() %>% pull()
-
-no_obs_check
-
-```
-
-## Flagging those that had lots of big jumps 
-
-
-```{R, eval = FALSE}
-original = original %>% group_by(timeid, eye) %>% mutate(lag_major = lag(major_axis), jump = major_axis - lag_major) %>% ungroup()
-
-
-jump_check  = original %>% filter(abs(jump) > 10) %>% group_by(timeid, eye) %>% mutate(jump_count = n()) %>% ungroup() %>% select(timeid, eye, jump_count) %>% unique() %>% filter(jump_count>=50) %>%  select(timeid) %>% unique() %>% pull()
-
-jump_check %>% length()
-
-```
 
 # To manually clean 
 
@@ -293,7 +54,7 @@ jump_check %>% length()
 
 ```{r}
 
-## Should create a function here 
+## removal function
 removal_function <- function(removal, timeid_rem, eye_rem){
   left_eye = removal %>% filter(timeid == timeid_rem, eye == eye_rem, outlier_manual == "0")
   
@@ -304,7 +65,6 @@ removal_function <- function(removal, timeid_rem, eye_rem){
 										qu = 0.5) # fit qgam
   p <- predict(quantile_gam_left, type = "link", se.fit = TRUE)# predicted values
   left_eye$predicted = p$fit
-
   pupils = full_join(pupils, left_eye)
   
   return(pupils)
@@ -316,7 +76,7 @@ removal_function <- function(removal, timeid_rem, eye_rem){
 
 ## 001-004post
 
-```{R}
+```{r}
 
 ## Removing this set from pupils 
 
@@ -2284,10 +2044,8 @@ ggplot(pupils %>% filter(timeid == id_temp ,eye == eye_temp), aes(x = frame, y =
 
 # Saving Fully Cleaned Data
 
+Note that this will write over the dataset saved before manual cleaning
+
 ```{r}
-filename = "pupils_full_clean.csv"
-
-write_csv(pupils, file = here::here("data", filename))
-
-
+saveRDS(pupils, file = here::here("data", "cleaned_pupils.rds"))
 ```

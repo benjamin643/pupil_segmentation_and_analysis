@@ -5,7 +5,10 @@ output: html_document
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(echo = FALSE, 
+                      warning = FALSE, 
+                      message = FALSE)
+
 library(tidyverse)
 library(ggpubr)
 library(mgcv)
@@ -22,7 +25,7 @@ remove: Time, TimeR, eccentricity, minor_axis/R
 
 ```{R}
 ## load raw trajectory data
-output = readRDS(here::here("data", "raw_pupil_size_predictions.rds"))
+output = readRDS(here::here("data", "raw_pupil_size.rds"))
 
 ```
 
@@ -147,15 +150,12 @@ for (iter_eye in 1:2){
 
 # Save data 
 
+This step saves the cleaned trajectories to the `data` subfolder.
 
 ```{r}
 pupils_fin = as_tibble(pupils_fin)
 
-filename = "pupils.csv"
-
-writeRDS()
-
-# write_csv(pupils_fin, file = here::here("data", filename))
+saveRDS(pupils_fin, file = here::here("data", "cleaned_pupils.rds")) 
 
 ```
 

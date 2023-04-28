@@ -25,7 +25,7 @@ The example folder is included here with a video that is capturing pupils during
 
 The videos from our paper cannot be made publicly available due to participant privacy concerns. However, in order to make our pipeline as reproducible as possible we have included a dataset of raw pupil size trajectories output from running the videos from our analysis through our segmentation pipeline. This dataset, `raw_pupil_size_predictions.rds`, can be used to reproduce all downstream analyses from our paper.
 
-* `raw_pupil_size_predictions.rds`: pupil size trajectories estimated from video segmentation, before any data cleaning steps
+* `raw_pupil_size.rds`: pupil size trajectories estimated from video segmentation, before any data cleaning steps
 * `scalar_metrics_pupils.rds`: dataset of scalar features extracted from pupil size trajectories
   
 ## Cleaning and Analysis Folder

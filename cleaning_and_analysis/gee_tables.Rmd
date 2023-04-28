@@ -36,21 +36,9 @@ This file contains code to reproduce generalized estimating equation (GEE) model
 # Read Data 
 
 ```{r}
-#scalars <- read_csv("~/Desktop/scalars_trim.csv")
-
 ## load scalar features data
 scalars = readRDS(here::here("data", "scalar_metrics_pupils.rds"))
 
-# Potentially add this to scalar features document
-# scalars = read_csv("/Users/benjaminsteinhart/Desktop/image_seg/data/scalars_trim.csv") %>%
-#   mutate(user_type = factor(user_type, levels = c("non-user", "occasional", "daily")),
-#          prepost = factor(time, levels = c("pre2", "post")),
-#          eye = factor(eye, levels = c("Left", "Right"))) %>%
-#   select(subject_id, user_type, prepost, eye, min_constriction, AUC, completed_obs, duration) %>%
-#   arrange(subject_id, prepost, eye)
-
-
-#scalars$min_constriction = scalars$min_constriction * (-1)
 ```
 
 # Gee models

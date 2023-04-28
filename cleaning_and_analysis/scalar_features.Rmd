@@ -1,6 +1,10 @@
 ---
 title: "scalar features"
-output: html_document
+output:
+  html_document: 
+    toc: true
+    toc_float: true
+    code_folding: hide
 ---
 
 ```{r setup, message=FALSE, warning=FALSE}
@@ -14,9 +18,8 @@ library(RColorBrewer)
 library(readxl)
 library(qgam)
 library(kableExtra)
-
-
 library(pracma)
+
 knitr::opts_chunk$set(
   echo = FALSE,
   warning = FALSE,
@@ -30,8 +33,8 @@ theme_set(theme_bw() + theme(legend.position = "bottom"))
 # Load data 
 
 ```{r}
-# load pupils full clean from the manual cleaning document
-
+# load pupil trajectory data after running registration.Rmd
+pupils <- readRDS(file = here::here("data", "cleaned_registered_pupils.rds"))
 ```
 
 

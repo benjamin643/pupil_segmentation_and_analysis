@@ -1,7 +1,10 @@
 ---
 title: "pupil registration"
-output: html_document
-date: '2022-06-27'
+output:
+  html_document: 
+    toc: true
+    toc_float: true
+    code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
@@ -17,21 +20,16 @@ library(qgam)
 ## Registering curves based on steepest decrease between extremum and ending test based on jumps at end  
 
 ```{r}
+# load cleaned pupils data
+pupils <- readRDS(file = here::here("data", "cleaned_pupil.rds"))
 
 ## registration based on min/max 
 
 # ending based on distance from previous and next two 
-
 set.seed(27)
-# load pupils data 
-
-pupils = read_csv(here::here("data", "pupils_full_clean.csv"))
-# 
 participant_vec = unique(pupils$timeid)
 #
 eyes = c("Left", "Right")
-
-# storage_matrix = matrix(NA, nrow = length(participant_vec)*2, ncol = 6)
 
 storage_matrix = matrix(NA, nrow = 1, ncol = 17)
 storage_matrix = as_tibble(storage_matrix)
@@ -40,13 +38,8 @@ cols = c("timeid", "eye", "frame", "centered", "yhat2", "time", "major_axis", "m
 
 
 colnames(storage_matrix) = cols
-
-
 count = 0
 for (iter in 1:length(participant_vec)){
-
-
-
   for(iter_eye in 1:2){
   count = count+1
 
@@ -104,17 +97,7 @@ new_data = new_data %>% mutate(extremum = case_when(
 )) # capturing edge points
 
 new_data$extremum = factor(new_data$extremum)
-# 
-# ## 2nd der
-# new_data$max2 = der_vec_max2
-# 
-# new_data$min2 = der_vec_min2
 
-# new_data$extremum2 = new_data$max2 + new_data$min2
-# 
-# new_data$extremum2 = factor(new_data$extremum2)
-# 
-# 
 
 new_data$der = der_vec
 
@@ -134,12 +117,8 @@ new_data = as_tibble(new_data)
 ##### Ending test 
 
 prac2 = prac[!is.na(prac$major_axis), ]
-
 prac2$frame_id = seq(1, nrow(prac2))
-
 prac2 = prac2 %>% select(frame, frame_id, major_axis)
-
-
 
 
 if(nrow(prac2 > 30)){
@@ -196,11 +175,8 @@ for (i in 1:(nrow(prac2))){
 }
 
 prac2$prev = der_prev
-
 prac2$first = der_vec
-
 prac2$first2 = der_vec2
-
 prac2$prac = abs((prac2$first + prac2$first2))/2
 # 
 ex = prac2 %>% filter(frame_id > 300, prev<5, prac > 10) %>% arrange(frame) %>% select(frame) 
@@ -217,8 +193,6 @@ prac2 = prac2 %>% filter(frame <= (ending_fin - 1))
 
 
 #####
-
-
 fit <- qgam(major_axis~ s(frame, k=25, bs="cs"), data=prac2, qu = 0.5)
 
 new_data2 = data.frame(frame = seq(0, max(prac2$frame, na.rm=TRUE), length.out = max(prac2$frame, na.rm=TRUE)))
@@ -255,8 +229,6 @@ storage_matrix = full_join(storage_matrix, temp)
 ```{r}
 
 ## Creating Percent Change Variable 
-
-
 initial = storage_matrix %>% filter(centered == "0") %>% group_by(timeid, eye) %>%  mutate(initial =first(yhat2)) %>% ungroup() %>% select(timeid, eye, initial)
 
 storage_matrix = left_join(storage_matrix, initial)
@@ -264,41 +236,15 @@ storage_matrix = left_join(storage_matrix, initial)
 storage_matrix = storage_matrix %>% group_by(timeid, eye) %>% mutate(percent_change = ((yhat2 - initial) / initial)*100) %>% ungroup()
 storage_matrix = storage_matrix %>% select(-initial)
 
-storage_matrix %>% skimr::skim()
 
 temp_storage = storage_matrix[!is.na(storage_matrix$timeid),]
 
 ```
 
-## REgistration Plot 
-
-```{R, eval = FALSE}
-temp_graph = storage_matrix %>% filter(timeid == "001-111post", eye == "Right")
-
-starting = temp_graph %>% filter(centered == "0") %>% select(frame) %>% pull()
-
-plot1 = ggplot(temp_graph, aes(x = frame, y = percent_change )) + geom_line() + geom_vline(aes(xintercept=141),linetype="dotted") + geom_vline(aes(xintercept= 75 )) +ylab("Predicted Major Axis Size") + ggtitle("A") + theme(plot.title = element_text(size = 20, face = "bold")) +
-  theme(plot.title = element_text(hjust = 0.5))
-
-plot2 = ggplot(temp_graph, aes(x = centered, y = percent_change )) + geom_line()  +ylab("Predicted Major Axis Size") + geom_vline(aes(xintercept=0),linetype="dotted") + ggtitle("B") + theme(plot.title = element_text(size = 20, face = "bold")) +
-  theme(plot.title = element_text(hjust = 0.5))
-
-plot3 = ggplot(storage_matrix %>% filter(centered >= 0, eye == "Right"), aes(x = centered, y = percent_change, fill = timeid)) + geom_line(alpha = 0.2)  + theme(legend.position = "none") + ggtitle("C") + ylab("Percent Change from Baseline") + theme(plot.title = element_text(size = 20, face = "bold")) +
-  theme(plot.title = element_text(hjust = 0.5))
-
-p = ggarrange(plot1, plot2, plot3, ncol = 3)
-
-ggsave(file="length-hist.png")
-```
-
-
 
 # Save fully cleaned data
 
 ```{r}
-filename = "pupils_clean_register.csv"
-
-
-write.csv(as.data.frame(storage_matrix), file = here::here("data", filename))
-
+saveRDS(temp_storage, 
+        file = here::here("data", "cleaned_registered_pupils.rds"))
 ```
