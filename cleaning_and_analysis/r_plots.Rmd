@@ -1,64 +1,36 @@
 ---
-title: "R Plots"
-output: html_document
-date: "2023-04-23"
+title: "R plots"
+output:
+  html_document: 
+    toc: true
+    toc_float: true
+    code_folding: hide
 ---
 
-## saving scalar features
+```{r setup, message=FALSE, warning=FALSE, echo = FALSE}
+library(tidyverse)
+
+
+
+knitr::opts_chunk$set(
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 8,
+  fig.height = 6
+)
+theme_set(theme_bw() + theme(legend.position = "bottom"))
+```
+
+# Load data
 
 ```{r}
 
-filename = "scalars_trim.csv"
-
-read_csv(file = here::here("data", filename))
-
-```
-
-
-# Exploring Distributions of Scalar Featurs
-
-
-## Min Constriction
-
-```{r, eval = FALSE}
-
-ggplot(scalars, aes(x = min_constriction)) + geom_histogram() + facet_wrap(~eye)
+## load scalar features data
+scalars = readRDS(here::here("data", "scalar_metrics_pupils.rds"))
 
 ```
 
 
-## Beginning Slope
-
-```{r, eval = FALSE}
-
-ggplot(scalars, aes(x = beginning_slope)) + geom_histogram() + facet_wrap(~eye)
-
-```
-
-## Avg End Percent 
-
-```{r, eval = FALSE}
-
-ggplot(scalars, aes(x = avg_end_percent)) + geom_histogram() + facet_wrap(~eye) 
-
-```
-
-## Slope
-
-```{r, eval = FALSE}
-
-ggplot(scalars, aes(x = slope)) + geom_histogram() + facet_wrap(~eye)
-
-```
-
-## AUC 
-
-```{r, eval = FALSE}
-
-ggplot(scalars, aes(x = AUC)) + geom_histogram() + facet_wrap(~eye)
-
-```
-* Distributions look fairly normal
 
 # tables
 
@@ -208,7 +180,7 @@ plot1 = ggplot(temp, aes(x = frame, y = major_axis)) + geom_point(size = 3) +
     theme(plot.title = element_text(size = 30, face = "bold")) +
   scale_x_continuous(name="frame", breaks= seq(0, 600, 100)) + 
   xlim(c(0, 610))
-ggsave(file="3A.png")
+
 
    
 
@@ -243,7 +215,7 @@ plot2= ggplot(temp, aes(x = frame, y = major_axis)) + geom_point(aes(colour = te
     theme(plot.title = element_text(size = 30, face = "bold")) +
   scale_x_continuous(name="frame", breaks= seq(0, 600, 100))+ 
   xlim(c(0, 610))
-ggsave(file="3B.png")
+
 
 cleaned = temp %>% filter(outliers == "No")
 
@@ -263,7 +235,7 @@ plot3 = ggplot(cleaned, aes(x = frame, y = major_axis)) + geom_point(size = 3) +
   scale_x_continuous(name="frame", breaks= seq(0, 600, 100))+ 
   ylim(c(90, 115))+ 
   xlim(c(0, 610))
-ggsave(file="3C.png")
+
 
 
 plot4 = ggplot(temp_graph, aes(x = frame, y = yhat2 )) + geom_line() + geom_vline(aes(xintercept=min_constriction_frame, colour = "blue")) +
@@ -279,7 +251,7 @@ plot4 = ggplot(temp_graph, aes(x = frame, y = yhat2 )) + geom_line() + geom_vlin
   scale_x_continuous(name="frame", breaks= seq(0, 600, 100)) + 
   ylim(c(90, 115))+ 
   xlim(c(0, 610))
-ggsave(file="3D.png")
+
 
 plot5 = ggplot(temp_graph, aes(x = centered, y = yhat2 )) + geom_line() + geom_vline(aes(xintercept=0),linetype="dotted") + 
   # ggtitle("E") + 
@@ -290,7 +262,7 @@ plot5 = ggplot(temp_graph, aes(x = centered, y = yhat2 )) + geom_line() + geom_v
   ylim(c(90, 115))+
   scale_x_continuous(name="frame", breaks= seq(0, 600, 100))+ 
   xlim(c(0, 610))
-ggsave(file="3E.png")
+
 
 # 
 # plot3 = ggplot(pupils %>% filter(centered >= 0, eye == "Right"), aes(x = centered, y = percent_change, fill = timeid)) + geom_line(alpha = 0.2)  + theme(legend.position = "none") + ggtitle("C") + ylab("Percent Change from Baseline") + theme(plot.title = element_text(size = 20, face = "bold")) +
@@ -304,11 +276,10 @@ plot6 = ggplot(temp_graph %>% filter(centered >= 0, eye == "Right"), aes(x = cen
   theme(axis.title = element_text(size = 30), legend.text=element_text(size=30), legend.title=element_text(size=30), legend.position = c(0.7, 0.25), axis.text = element_text(size = 30))  + 
     theme(plot.title = element_text(size = 30, face = "bold"))+
   scale_x_continuous(name="frame", breaks= seq(0, 605, 100))
-ggsave(file="3F.png")
+
 
 ggarrange(plot1, plot2, plot3, plot4, plot5, plot6, ncol = 3, nrow = 2)
 
-# ggsave(file="registration_fig5.png")
 
 
 ```
@@ -324,7 +295,7 @@ plot1 = ggplot(temp, aes(x = frame, y = major_axis)) + geom_point(size = 3) +
   theme(plot.title = element_text(hjust = 0.5))
 
 plot1
-ggsave(file="/Users/benjaminsteinhart/Desktop/image_seg/reports/figures_thesis/major_output_original.png")
+
 
 plot2= ggplot(temp, aes(x = frame, y = major_axis)) + geom_point(aes(colour = temp$outliers), size = 3) + geom_line(aes(x = temp$frame, y = temp$upr), size = 1.3) + geom_line(aes(x = temp$frame, y = temp$lwr), size = 1.3) + 
   ylab("Major Axis Size") + 
@@ -346,7 +317,6 @@ plot3 = ggplot(cleaned, aes(x = frame, y = major_axis)) + geom_point(size=3) + g
 
 ggarrange(plot1, plot2, plot3, ncol = 3)
 
-ggsave(file="/Users/benjaminsteinhart/Desktop/image_seg/reports/figures_thesis/major_axis_cleaned.png")
 ```
 
 ```{r}
@@ -384,7 +354,6 @@ plot3 = ggplot(cleaned, aes(x = frame, y = major_axis)) + geom_point(size = 3) +
 
 ggarrange(plot1, plot3, ncol = 2)
 
-ggsave(file="/Users/benjaminsteinhart/Desktop/image_seg/reports/figures_thesis/acf.png")
 ```
 
 ```{r}
@@ -580,7 +549,6 @@ plot6 = ggplot(temp_graph %>% filter(centered >= 0, eye == "Right"), aes(x = cen
 
 ggarrange(plot3, plot4, plot5, plot6, ncol = 2, nrow = 2)
 
-ggsave(file="/Users/benjaminsteinhart/Desktop/image_seg/reports/figures_thesis/registering.png")
 ```
 
 
@@ -717,7 +685,7 @@ plot3 = ggplot(temp_graph , aes(x = centered, y = percent_change, fill = timeid)
 
 ggarrange(plot1, plot2, plot3, ncol = 3)
 
-# ggsave(file="overview_mult.png")
+
 
 
 
@@ -739,59 +707,11 @@ DF.SYMBOL<-data.frame(ID,EVENT,centered, percent_change)
 
 DF.SYMBOL$EVENT = factor(DF.SYMBOL$EVENT , levels = c("Percent Light Reflex"))
 
-# ### Blink Rate
-# ID<- 1
-# EVENT <- rep(c("Blinking"))
-# 
-# centered <- c(19, 100, 225)
-# 
-# blinking = c(-4, -11.8, -8.723)
-# 
-# DF.SYMBOL2<-data.frame(ID,EVENT,centered, blinking)
-# 
-# DF.SYMBOL2$EVENT = factor(DF.SYMBOL2$EVENT , levels = c("Blinking"))
-
-
-
-###### Plots
-# plot1 = ggplot(original %>% filter(timeid == temp_id, eye == "Right"), aes(x = frame, y = major_axis)) + geom_point()+
-#   ylab("Major Axis Size") + 
-#   xlab("Frame")+ 
-#   theme(axis.title = element_text(size = 55),  axis.text = element_text(size = 25))+
-#   scale_x_continuous(name="frame", breaks= seq(0, 600, 100)) + ylim(c(50, 125))
-# 
-# plot2 = ggplot(pupils %>% filter(timeid == temp_id, eye == "Right"), aes(x = frame, y = yhat2)) + geom_point()+
-#   ylab("Major Axis Size") + 
-#   xlab("Frame")+ 
-#   theme(axis.title = element_text(size = 55),  axis.text = element_text(size = 25)) +
-#   scale_x_continuous(name="frame", breaks= seq(0, 600, 100))+ ylim(c(50, 125))
-# 
-# 
-# temp_graph = temp_graph %>% filter(centered>=0)
-# 
-# plot3 = ggplot(temp_graph , aes(x = centered, y = percent_change, fill = timeid)) + geom_line()  +
-#   ylab("Percent Change from Baseline") + 
-#   xlab("frame") + 
-#   theme(plot.title = element_text(hjust = 0.5)) + 
-#   geom_ribbon(aes(x=temp_graph$centered, ymax=0, colour = "Rebound Dilation"), ymin=temp_graph$percent_change,alpha=0.3) +
-#   geom_point(data = DF.SYMBOL, aes(x = centered, y = percent_change, fill = EVENT, shape = EVENT), size = 8) + guides(shape = guide_legend(title = "Scalar Outcomes", order = 1), fill="none", colour = guide_legend(title = element_blank())) + 
-#   theme(legend.position="right") + 
-#   theme(legend.margin = margin(-0.5,0,0,0, unit="cm")) + 
-#   theme(axis.title = element_text(size = 55), legend.text=element_text(size=20), legend.title=element_text(size=25), legend.position = c(0.6, 0.25), axis.text = element_text(size = 25)) 
-# 
-# ggarrange(plot1, plot2, plot3, ncol = 3)
-# 
-# ggsave(file="overview_mult.png")
-# 
-
-
 ggplot(original %>% filter(timeid == temp_id, eye == "Right"), aes(x = frame, y = major_axis)) + geom_point(size = 2)+
   ylab("Major Axis Size") + 
   xlab("Frame")+ 
   theme(axis.title = element_text(size = 20),  axis.text = element_text(size = 15))+
   scale_x_continuous(name="frame", breaks= seq(0, 600, 100)) + ylim(c(50, 125))
-
-ggsave(file="estimates_seg_pipe.png")
 
 
 ggplot(pupils %>% filter(timeid == temp_id, eye == "Right"), aes(x = frame, y = yhat2)) + geom_point(size = 2 )+
@@ -800,7 +720,7 @@ ggplot(pupils %>% filter(timeid == temp_id, eye == "Right"), aes(x = frame, y = 
   theme(axis.title = element_text(size = 20),  axis.text = element_text(size = 15)) +
   scale_x_continuous(name="frame", breaks= seq(0, 600, 100))+ ylim(c(50, 125))
 
-ggsave(file="estimates_qgam.png")
+
 
 ribbon_dat = temp_graph %>% filter(centered>min_constriction_centered)
 
@@ -818,7 +738,6 @@ ggplot(temp_graph %>% filter(centered >=0), aes(x = centered, y = percent_change
   theme(axis.title = element_text(size = 18), legend.text=element_text(size=16), legend.title=element_text(size=16), legend.position = c(0.77, 0.15), axis.text = element_text(size = 15)) +
   theme(legend.title.align=0.5)
 
-ggsave(file="2scalarfeature.png")
 
 
 ```
@@ -1051,7 +970,6 @@ geom_smooth(data = prac %>% filter(user_type == "non-user"), aes(x = centered, y
   geom_smooth(data = prac %>% filter(user_type == "occasional"), aes(x = centered, y = percent_change), method = "lm", formula = y ~ splines::bs(x, 20), se = F, color = "blue", size = 3 ) + 
   geom_smooth(data = prac %>% filter(user_type == "daily"), aes(x = centered, y = percent_change), method = "lm", formula = y ~ splines::bs(x, 20), se = F, color = "green", size = 3) 
  
-ggsave(file="full_pupil_projections_fin.png")
 
  # red non user 
  # blue occasional

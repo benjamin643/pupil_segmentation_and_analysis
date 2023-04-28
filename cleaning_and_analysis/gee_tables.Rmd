@@ -38,7 +38,7 @@ This file contains code to reproduce generalized estimating equation (GEE) model
 ```{r}
 #scalars <- read_csv("~/Desktop/scalars_trim.csv")
 
-## load raw trajectory data
+## load scalar features data
 scalars = readRDS(here::here("data", "scalar_metrics_pupils.rds"))
 
 # Potentially add this to scalar features document
