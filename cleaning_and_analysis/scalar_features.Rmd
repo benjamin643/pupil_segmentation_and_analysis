@@ -1,7 +1,6 @@
 ---
 title: "scalar features"
 output: html_document
-date: '2022-06-27'
 ---
 
 ```{r setup, message=FALSE, warning=FALSE}

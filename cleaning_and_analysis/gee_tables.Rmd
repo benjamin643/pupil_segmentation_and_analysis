@@ -1,10 +1,13 @@
 ---
 title: "gee tables"
-output: html_document
-date: '2022-06-27'
+output:
+  html_document: 
+    toc: true
+    toc_float: true
+    code_folding: hide
 ---
 
-```{r setup, message=FALSE, warning=FALSE}
+```{r setup, message=FALSE, warning=FALSE, echo = FALSE}
 library(tidyverse)
 library(broom)
 library(emmeans)
@@ -19,7 +22,6 @@ library(pracma)
 
 
 knitr::opts_chunk$set(
-  echo = FALSE,
   warning = FALSE,
   message = FALSE,
   fig.width = 8,
@@ -28,28 +30,32 @@ knitr::opts_chunk$set(
 theme_set(theme_bw() + theme(legend.position = "bottom"))
 ```
 
+
+This file contains code to reproduce generalized estimating equation (GEE) models and tables 2 and 3 for the paper.
+
 # Read Data 
 
 ```{r}
 #scalars <- read_csv("~/Desktop/scalars_trim.csv")
 
-scalars = read_csv("/Users/benjaminsteinhart/Desktop/image_seg/data/scalars_trim.csv") %>%
-  mutate(user_type = factor(user_type, levels = c("non-user", "occasional", "daily")),
-         prepost = factor(time, levels = c("pre2", "post")),
-         eye = factor(eye, levels = c("Left", "Right"))) %>%
-  select(subject_id, user_type, prepost, eye, min_constriction, AUC, completed_obs, duration) %>%
-  arrange(subject_id, prepost, eye)
+## load raw trajectory data
+scalars = readRDS(here::here("data", "scalar_metrics_pupils.rds"))
+
+# Potentially add this to scalar features document
+# scalars = read_csv("/Users/benjaminsteinhart/Desktop/image_seg/data/scalars_trim.csv") %>%
+#   mutate(user_type = factor(user_type, levels = c("non-user", "occasional", "daily")),
+#          prepost = factor(time, levels = c("pre2", "post")),
+#          eye = factor(eye, levels = c("Left", "Right"))) %>%
+#   select(subject_id, user_type, prepost, eye, min_constriction, AUC, completed_obs, duration) %>%
+#   arrange(subject_id, prepost, eye)
 
 
-scalars$min_constriction = scalars$min_constriction * (-1)
+#scalars$min_constriction = scalars$min_constriction * (-1)
 ```
 
 # Gee models
 
 ```{r}
-
-#scalars$prepost = factor(scalars$prepost, levels = c("pre2", "post"))
-#scalars$eye = factor(scalars$eye, levels = c("Left", "Right"))
 
 ## Percent Constriction
 min_gee <- geeglm(min_constriction ~ eye + prepost*user_type,
@@ -79,13 +85,6 @@ obs_gee <- geeglm(cbind(completed_obs, duration-completed_obs) ~ eye + prepost*u
                id = factor(subject_id), 
                family = binomial,
                corstr = "independence")
-
-
-summary(min_gee)
-
-summary(auc_gee)
-
-summary(obs_gee)
 ```
 
 
@@ -389,8 +388,6 @@ obs_gee_general <- geeglm(cbind(completed_obs, duration - completed_obs) ~ eye +
                family = binomial,
                corstr = "independence")
 
-summary(auc_gee_general)
-
 ```
 
 # Group means 
@@ -487,8 +484,7 @@ contrast_pair = function(gee_model, contrast_statment, df, lower_tail = FALSE, l
 
 ## Pairwise estimates for differences and p-values for table 4
 non_general_results = contrast_pair(min_gee_general, non_general_dif, 1) # Dif_non - dif_daily
-summary(min_gee_general)
-summary(min_gee)
+
 ### Creating row for table 
 
 row_min_con_gen = t(as.matrix(unlist(non_general_results)))
@@ -661,78 +657,3 @@ contrast_statment.m <- matrix(contrast_statment, byrow=T, 1, 7) # convert contra
   contrast_statment_est = round(contrast_statment_est, 3)
 ```
 
-# Post event difference for non vs general user 
-```{R}
-post_dif = post_non_gen - post_use_gen
-
-
-min_post_results = contrast_pair(min_gee_general, post_dif, 1) # Dif_non - dif_daily
-
-min_auc_results = contrast_pair(auc_gee_general, post_dif, 1) # Dif_non - dif_daily
-
-min_post_results 
-min_auc_results
-```
-
-
-# Graph for poster
-
-```{r}
-se_non_dif = sum(non_dif*se_min)
-se_occ_dif = sum(occ_dif*se_min)
-se_daily_dif = sum(daily_dif*se_min)
-se_general_dif = sum(general_dif*se_min_gen)
-
-non_dif = mean_post_non_min - mean_pre_non_min
-occ_dif = mean_post_occ_min - mean_pre_occ_min
-daily_dif = mean_post_daily_min - mean_pre_daily_min
-general_dif = mean_post_use_gen_min - mean_pre_use_gen_min
-
-# Upper 95 
-nonU = non_dif + 1.96*se_non_dif
-occU = occ_dif + 1.96*se_occ_dif
-dailyU = daily_dif + 1.96*se_daily_dif
-genU = general_dif + 1.96*se_general_dif
-
-# Lower 95 
-nonL = non_dif - 1.96*se_non_dif
-occL = occ_dif - 1.96*se_occ_dif
-dailyL = daily_dif - 1.96*se_daily_dif
-genL = general_dif - 1.96*se_general_dif
-
-
-non_dif
-nonU
-nonL
-
-row1 = c(non_dif, nonU, nonL, "Non-User")
-row2 = c(occ_dif, occU, occL, "Occasional")
-row3 = c(daily_dif, dailyU, dailyL, "Daily")
-row4 = c(general_dif, genU, genL, "General")
-
-
-
-dat = rbind(row1, row2, row3, row4)
-rownames(dat) = c("Non-User", "Occasional", "Daily", "General")
-colnames(dat) = c("Difference", "Upper 95% CI", "Lower 95% CI", "user_type")
-
-dat = as_tibble(dat)
-
-dat$Difference = as.numeric(dat$Difference)
-dat$`Upper 95% CI` = as.numeric(dat$`Upper 95% CI`)
-dat$`Lower 95% CI` = as.numeric(dat$`Lower 95% CI`)
-
-dat$user_type = factor(dat$user_type, levels = c("Non-User", "Occasional", "Daily", "General") )
-
-ggplot(dat, aes(x  = user_type, y=Difference)) + 
-    geom_errorbar(aes(ymin= `Lower 95% CI`, ymax=`Upper 95% CI`), colour="black", width=.4) +
-    geom_point(size = 10) +
-  ylab("Difference (Post - Pre)") +
-  xlab("Cannabis User Group") + 
-  ggtitle("Change in Percent Light Reflex After Cannabis Consumption")+
-  theme(plot.title = element_text(hjust = 0.5), axis.title = element_text(size = 50), axis.text = element_text(size = 55))+ 
-    theme(plot.title = element_text(size = 45, face = "bold"))
-
-# ggsave(file="poster_results.png")
-
-```
