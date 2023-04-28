@@ -4,3 +4,4 @@
 *.DS_Store
 *cleaned_registered_pupils.rds
 *cleaned_pupils.rds
+*html

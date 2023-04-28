@@ -27,7 +27,7 @@ original = readRDS(here::here("data", "raw_pupil_size.rds"))
 
 
 # loaded data cleaned by qgams, and calculate percent change
-pupils <- readRDS(file = here::here("data", "cleaned_pupil.rds")) %>%
+pupils <- readRDS(file = here::here("data", "cleaned_pupils.rds")) %>%
   group_by(timeid, eye) %>%
   mutate(initial =first(major_axis),
          percent_change = ((major_axis - initial) / initial)*100) %>%

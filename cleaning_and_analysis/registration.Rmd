@@ -21,23 +21,20 @@ library(qgam)
 
 ```{r}
 # load cleaned pupils data
-pupils <- readRDS(file = here::here("data", "cleaned_pupil.rds"))
+pupils <- readRDS(file = here::here("data", "cleaned_pupils.rds"))
 
 ## registration based on min/max 
 
 # ending based on distance from previous and next two 
 set.seed(27)
 participant_vec = unique(pupils$timeid)
-#
 eyes = c("Left", "Right")
 
-storage_matrix = matrix(NA, nrow = 1, ncol = 17)
-storage_matrix = as_tibble(storage_matrix)
-
 cols = c("timeid", "eye", "frame", "centered", "yhat2", "time", "major_axis", "minor_axis", "eccentricity", "centerx", "centery", "outliers", "predicted", "dist_from_origin", "med_y", "sd_y",  "outlier_manual")
-
-
+storage_matrix = as_tibble(matrix(NA, nrow = 1, ncol = length(cols)))
 colnames(storage_matrix) = cols
+
+
 count = 0
 for (iter in 1:length(participant_vec)){
   for(iter_eye in 1:2){
@@ -220,7 +217,8 @@ temp = left_join(temp, prac)
 
 storage_matrix = full_join(storage_matrix, temp)
 
-}}}}
+}}}
+  }
 
 
 ```
