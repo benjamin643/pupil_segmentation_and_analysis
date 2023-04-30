@@ -11,238 +11,117 @@ output:
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 
 library(tidyverse)
-library(ggpubr)
 library(qgam)
 ```
 
 
+## Data loading 
 
-## Registering curves based on steepest decrease between extremum and ending test based on jumps at end  
+First, load the cleaned pupil data.
 
 ```{r}
 # load cleaned pupils data
 pupils <- readRDS(file = here::here("data", "cleaned_pupils.rds"))
 
-## registration based on min/max 
-
-# ending based on distance from previous and next two 
-set.seed(27)
-participant_vec = unique(pupils$timeid)
-eyes = c("Left", "Right")
-
-cols = c("timeid", "eye", "frame", "centered", "yhat2", "time", "major_axis", "minor_axis", "eccentricity", "centerx", "centery", "outliers", "predicted", "dist_from_origin", "med_y", "sd_y",  "outlier_manual")
-storage_matrix = as_tibble(matrix(NA, nrow = 1, ncol = length(cols)))
-colnames(storage_matrix) = cols
+```
 
 
-count = 0
-for (iter in 1:length(participant_vec)){
-  for(iter_eye in 1:2){
-  count = count+1
+Next, define a function that will be applied to each trajectory to register the data.
 
-prac = pupils %>% filter(timeid == participant_vec[iter], eye == eyes[iter_eye])
+```{r}
+# dat is a single clean but unregistered pupil trajectory
+register_pupil_trajectory = function(dat){
+  
+  ##### Calculate end of light test
+  end_df = dat %>%
+    filter(!is.na(major_axis)) %>% select(frame, major_axis)
+  
+  # calculate derivatives
+  der_vec = c(0, diff(end_df$major_axis)) 
+  der_vec2 = c(0, diff(end_df$major_axis, 2),0) 
+  
+  ending_frame = end_df %>%
+    mutate(prev = c(0, abs(diff(major_axis))),
+           dat = abs(der_vec + der_vec2)/2) %>%
+    filter(frame > 300, prev < 5, dat > 10) %>%
+    arrange(frame) %>% first() %>% pull(frame)
+  
+  if(is.na(ending_frame)){ending_frame = max(end_df$frame, na.rm= TRUE)} 
+  
+  # remove frames after last frame
+  dat = dat %>% filter(frame <= ending_frame)
+  
+  ##### Calculate beginning of light test
+  n_knots = if_else(nrow(dat) > 30, 25, nrow(dat) - 5)
+  # smooth data to get better derivative calculations
+  fit <- qgam(major_axis~ s(frame, k=n_knots, bs="cs"), data=dat, qu = 0.5)
+  
+  ysmooth = predict(fit, newdata = data.frame(frame = dat$frame))
+  dat$ysmooth = as.numeric(ysmooth)
+  
+  # get first derivative, local min, and local max
+  der_vec = c(0, diff(ysmooth)) 
+  sign_dif = c(sign(diff(sign(der_vec))), 0)
+  der_vec_max = ifelse(sign_dif == -1, 1, 0)
+  der_vec_min = ifelse(sign_dif == 1, 1, 0)
+  
+  ##### calculate beginning of light test
+  beginning_frame = dat %>% 
+    mutate(extremum = factor(der_vec_max + der_vec_min)) %>%
+    filter(extremum == 1, frame < 300) %>% 
+    mutate(slope = ysmooth - lead(ysmooth)) %>%
+    arrange(-slope) %>% 
+    first() %>% pull(frame) %>% round()
+  
+  dat %>% 
+    mutate(beginning_frame = beginning_frame,
+           centered = round(frame - beginning_frame)) %>%
+    filter(frame >= beginning_frame) %>%
+    as_tibble() %>%
+    select(timeid, frame, centered, eye, major_axis, ysmooth)
 
-
-if(nrow(prac > 30)){
-fit <- qgam(major_axis~ s(frame, k=25, bs="cs"), data=prac, qu = 0.5)
-
-new_data = data.frame(frame = seq(0, 600, length.out = 600))
-
-new_data$yhat2 = predict(fit, newdata = new_data)
-
-der_vec = NULL
-der_vec2 = NULL
-
-der_vec_max = NULL
-der_vec_min = NULL
-
-# first derivative
-for (i in 1:(nrow(new_data))){
-  if (i == 1){
-    der_vec[i] = 0
-  }
-  if (i>1){
-    der_vec[i] = new_data$yhat2[i+1] - new_data$yhat2[i]
-  }
-  if (i == nrow(new_data)) {
-    der_vec[i] = 0
-  }
 }
-
-####
-## first derivative max
-for (i in 1:(length(der_vec))){
-  der_vec_max[i] = if_else(der_vec[i] >=0  & der_vec[i+1] < 0, 1,0)
-}
-
-## first derivative min 
-for (i in 1:(length(der_vec))){
-  der_vec_min[i] = if_else(der_vec[i] <= 0  & der_vec[i+1]  > 0, 1,0)
-}
-
-
-new_data$max = der_vec_max
-
-new_data$min = der_vec_min
-
-new_data$extremum = new_data$max + new_data$min
-
-new_data = new_data %>% mutate(extremum = case_when(
-  extremum == "1" ~ "1",
-  extremum == "0" ~ "0",
-  TRUE ~ "1"
-)) # capturing edge points
-
-new_data$extremum = factor(new_data$extremum)
-
-
-new_data$der = der_vec
-
-ex = new_data %>% filter(extremum == "1", frame < 300) %>% mutate(slope = yhat2 - lead(yhat2))
-
-beginning = (ex %>% arrange(-slope) %>% select(frame))
-
-### frame identified as max before at or before start of test. 
-beginning = round(beginning[1,])
-
-new_data$beginning_frame = beginning
-
-new_data$centered = round(new_data$frame - new_data$beginning_frame)
-
-new_data = as_tibble(new_data)
-
-##### Ending test 
-
-prac2 = prac[!is.na(prac$major_axis), ]
-prac2$frame_id = seq(1, nrow(prac2))
-prac2 = prac2 %>% select(frame, frame_id, major_axis)
-
-
-if(nrow(prac2 > 30)){
-
-der_vec = NULL
-der_vec2 = NULL
-der_prev = NULL
-
-
-der_vec_max = NULL
-der_vec_min = NULL
-
-der_vec_max2 = NULL
-der_vec_min2 = NULL
-
-curv_vec = NULL
-curv_vec_max = NULL
-curv_vec_min = NULL
-
-# previous
-for (i in 1:(nrow(prac2))){
-  if (i == 1){
-    der_prev[i] = 0
-  }
-  if (i>1){
-    der_prev[i] = abs(prac2$major_axis[i] - prac2$major_axis[i-1])
-  }
-}
-
-# first derivative
-for (i in 1:(nrow(prac2))){
-  if (i == 1){
-    der_vec[i] = 0
-  }
-  if (i>1){
-    der_vec[i] = prac2$major_axis[i+1] - prac2$major_axis[i]
-  }
-  if (i == nrow(prac2)) {
-    der_vec[i] = 0
-  }
-}
-
-# first derivative 2 ahead 
-for (i in 1:(nrow(prac2))){
-  if (i == 1){
-    der_vec2[i] = 0
-  }
-  if (i>1){
-    der_vec2[i] = prac2$major_axis[i+2] - prac2$major_axis[i + 1]
-  }
-  if (i >= nrow(prac2)-1) {
-    der_vec2[i] = 0
-  }
-}
-
-prac2$prev = der_prev
-prac2$first = der_vec
-prac2$first2 = der_vec2
-prac2$prac = abs((prac2$first + prac2$first2))/2
-# 
-ex = prac2 %>% filter(frame_id > 300, prev<5, prac > 10) %>% arrange(frame) %>% select(frame) 
-
-ending_fin = ex[1, ] %>% pull
-
-if (is.na(ending_fin) == TRUE){
-  ending_fin = max(prac2$frame, na.rm= TRUE)
-}
-
-
-# 
-prac2 = prac2 %>% filter(frame <= (ending_fin - 1))
-
-
-#####
-fit <- qgam(major_axis~ s(frame, k=25, bs="cs"), data=prac2, qu = 0.5)
-
-new_data2 = data.frame(frame = seq(0, max(prac2$frame, na.rm=TRUE), length.out = max(prac2$frame, na.rm=TRUE)))
-
-
-new_data2$yhat2 = predict(fit, newdata = new_data2)
-
-new_data2$timeid = participant_vec[iter]
-new_data2$eye =eyes[iter_eye]
-
-new_data2$frame = round(new_data2$frame)
-
-###
-new_data$timeid = participant_vec[iter]
-new_data$eye =eyes[iter_eye]
-
-new_data$frame = round(new_data$frame)
-
-
-new_data = new_data %>% select(timeid, frame, centered, eye)
-###
-temp = left_join(new_data2, new_data)
-
-temp = left_join(temp, prac)
-
-storage_matrix = full_join(storage_matrix, temp)
-
-}}}
-  }
-
 
 ```
+
+
+## Registration
+
+Apply function to register data.
+
+```{r}
+pupils_nest = pupils %>%
+  select(timeid, frame, eye, major_axis) %>%
+  mutate(timeid_eye = str_c(timeid, "_", eye)) %>%
+  nest(data = c(-timeid_eye))
+
+pupils_reg = map_dfr(pupils_nest$data, register_pupil_trajectory)
+
+rm(pupils_nest)
+```
+
+
+Create percent change variable.
 
 
 ```{r}
 
 ## Creating Percent Change Variable 
-initial = storage_matrix %>% filter(centered == "0") %>% group_by(timeid, eye) %>%  mutate(initial =first(yhat2)) %>% ungroup() %>% select(timeid, eye, initial)
+pupils_reg = pupils_reg %>% 
+  arrange(timeid, eye, centered) %>%
+  group_by(timeid, eye) %>%
+  mutate(percent_change = (ysmooth - first(ysmooth))/first(ysmooth) * 100) %>%
+  ungroup() %>%
+  select(timeid, eye, frame, centered, percent_change)
 
-storage_matrix = left_join(storage_matrix, initial)
 
-storage_matrix = storage_matrix %>% group_by(timeid, eye) %>% mutate(percent_change = ((yhat2 - initial) / initial)*100) %>% ungroup()
-storage_matrix = storage_matrix %>% select(-initial)
-
-
-temp_storage = storage_matrix[!is.na(storage_matrix$timeid),]
 
 ```
 
 
-# Save fully cleaned data
+## Saving fully cleaned, smoothed, and registered data
 
 ```{r}
-saveRDS(temp_storage, 
+saveRDS(pupils_reg, 
         file = here::here("data", "cleaned_registered_pupils.rds"))
 ```

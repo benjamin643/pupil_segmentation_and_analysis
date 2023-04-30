@@ -1576,35 +1576,103 @@ border-radius: 0px;
 </div>
 
 
-<div id="registering-curves-based-on-steepest-decrease-between-extremum-and-ending-test-based-on-jumps-at-end" class="section level2">
-<h2>Registering curves based on steepest decrease between extremum and
-ending test based on jumps at end</h2>
+<div id="data-loading" class="section level2">
+<h2>Data loading</h2>
+<p>First, load the cleaned pupil data.</p>
+<p>Next, define a function that will be applied to each trajectory to
+register the data.</p>
+</div>
+<div id="registration" class="section level2">
+<h2>Registration</h2>
+<p>Apply function to register data.</p>
 <pre><code>## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5..........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.......done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5............done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5.......done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5..........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5..............done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5..........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5.......done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
@@ -1622,9 +1690,7 @@ ending test based on jumps at end</h2>
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5................done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
+## qu = 0.5..........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
@@ -1632,31 +1698,273 @@ ending test based on jumps at end</h2>
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
+## qu = 0.5.......done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..................done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...................done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5............done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.............done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.......done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.......done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5..........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.......done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5...........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.......done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.......done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.......done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5...........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.......done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5...........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5..........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5..........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5...........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5..........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.......done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5..........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5............done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5............done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
@@ -1668,7 +1976,25 @@ ending test based on jumps at end</h2>
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
+## qu = 0.5..........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
@@ -1678,7 +2004,35 @@ ending test based on jumps at end</h2>
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5.........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
@@ -1690,7 +2044,15 @@ ending test based on jumps at end</h2>
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5.............done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5..............done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5...........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
@@ -1700,47 +2062,23 @@ ending test based on jumps at end</h2>
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
+## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
@@ -1754,8 +2092,6 @@ ending test based on jumps at end</h2>
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5.........done 
@@ -1768,37 +2104,129 @@ ending test based on jumps at end</h2>
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..................done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........................done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..............done 
+## qu = 0.5.........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5..........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5.......done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5.......done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.......done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.......done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.......done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.......done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
@@ -1816,15 +2244,19 @@ ending test based on jumps at end</h2>
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5...........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
+## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
@@ -1845,1351 +2277,64 @@ ending test based on jumps at end</h2>
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5................done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5................done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5............done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5.................done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........................done 
+## qu = 0.5...............done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
+## qu = 0.5................done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
+## qu = 0.5................done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.............done 
+## qu = 0.5...................done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5................done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
+## qu = 0.5................done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.................done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
+## qu = 0.5............done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.......done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5..........done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.................done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5.................done 
+## Estimating learning rate. Each dot corresponds to a loss evaluation. 
+## qu = 0.5..................done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
+## qu = 0.5................done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5.........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5....................done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...................done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5................done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5................done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..................done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5................done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5...............done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
 ## qu = 0.5........done 
 ## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5................done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...................done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.....................done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........................done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5................done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5................done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5...............done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.......done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5..........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5.........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done 
-## Estimating learning rate. Each dot corresponds to a loss evaluation. 
-## qu = 0.5........done</code></pre>
+## qu = 0.5................done</code></pre>
+<p>Create percent change variable.</p>
 </div>
-<div id="save-fully-cleaned-data" class="section level1">
-<h1>Save fully cleaned data</h1>
+<div id="saving-fully-cleaned-smoothed-and-registered-data" class="section level2">
+<h2>Saving fully cleaned, smoothed, and registered data</h2>
 </div>
 
 

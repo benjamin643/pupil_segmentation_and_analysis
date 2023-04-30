@@ -9,15 +9,6 @@ output:
 
 ```{r setup, message=FALSE, warning=FALSE}
 library(tidyverse)
-library(broom)
-library(emmeans)
-library(ggpubr)
-library(patchwork)
-library(scales)
-library(RColorBrewer)
-library(readxl)
-library(qgam)
-library(kableExtra)
 library(pracma)
 
 knitr::opts_chunk$set(
@@ -36,6 +27,7 @@ theme_set(theme_bw() + theme(legend.position = "bottom"))
 # load pupil trajectory data after running registration.Rmd
 pupils <- readRDS(file = here::here("data", "cleaned_registered_pupils.rds"))
 ```
+
 
 
 ##  Point of minimum constriction / Time to minimum constriction from start of the test 
@@ -149,7 +141,7 @@ for (iter in 1:length(participant_vec)){
 
     if(nrow(temp)>0){
     
-    temp_min = which.min(temp %>% filter(centered >=0) %>% arrange(centered) %>% select(yhat2) %>% pull())
+    temp_min = which.min(temp %>% filter(centered >=0) %>% arrange(centered) %>% select(percent_change) %>% pull())
     
     temp = temp[temp_min:nrow(temp), ] 
     
@@ -194,10 +186,9 @@ count = 0
 for (iter_eye in 1:2){
   for (iter1 in 1:length(participant_id)){
     count = count + 1
-    left_eye = pupils %>% filter(timeid == participant_id[iter1], eye == eyes[iter_eye], centered >=0) %>% select(timeid, eye, major_axis) #creating temporary data frame
+    left_eye = pupils %>% filter(timeid == participant_id[iter1], eye == eyes[iter_eye], centered >=0) %>% select(timeid, eye) #creating temporary data frame
     
     left_eye = left_eye[complete.cases(left_eye),]
-    # acf_clean = round(acf(left_eye$major_axis, pl = FALSE)$acf[2],4)
 
     n_obs = nrow(left_eye) # number of data points in original
 
@@ -218,7 +209,6 @@ scalars = left_join(scalars, storage_matrix)
 
 scalars$completed_obs = as.numeric(scalars$completed_obs)
 
-scalars %>% skimr::skim()
 
 ```
 
@@ -226,7 +216,6 @@ scalars %>% skimr::skim()
 # Merging User Group into scalar features
 
 ```{r}
-
 scalars$subject_id = substr(scalars$timeid, 1, 7) ## participant id 
 scalars$time = substr(scalars$timeid, 8, 15) # time point
 
@@ -235,20 +224,11 @@ pupils$subject_id = substr(pupils$timeid, 1, 7) ## participant id
 pupils$time = substr(pupils$timeid, 8, 15) # time point
 
 # importing user_group data from cannabis_variables: A is occasional, B is non-user, C is daily
-user_groups = read_xlsx("/Users/benjaminsteinhart/Desktop/data/202002_brooks_marijuana/20200121_demographic_data/all_demos_and_blood.xlsx")
-#modifying user group to say classification insteado of the letter
-user_groups = user_groups %>% mutate(user_type = case_when(
-  group == "A" ~ "occasional",
-  group == "B" ~ "non-user",
-  group == "C" ~ "daily"
-))
-user_groups = user_groups %>% select(subject_id, user_type)
 
+user_groups = readRDS(here::here("data", "scalar_metrics_pupils.rds")) %>%
+  select(subject_id, user_type)
 
 scalars = left_join(scalars, user_groups)
-
 pupils = left_join(pupils, user_groups)
 
-scalars$user_type = factor(scalars$user_type, levels = c("non-user", "occasional", "daily"))
 ```
-
