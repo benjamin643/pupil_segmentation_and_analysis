@@ -171,7 +171,7 @@ non_daily_dif = daily_dif - non_dif
 occ_daily_dif =  daily_dif -occ_dif 
 ```
 
-# Functions for estimates and p-values of difference of differecences using contrast statements 
+# Functions for estimates and p-values of difference of differences using contrast statements 
 
 ```{r}
 ### Function for pairwise difference of differences
