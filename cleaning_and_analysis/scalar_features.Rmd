@@ -49,11 +49,9 @@ scalars$frame_min = scalars$centered
 ```{r}
 
 participant_vec = unique(pupils$timeid)
-
 eyes = c("Left", "Right")
 
 storage_matrix = matrix(NA, nrow = length(participant_vec)*2, ncol = 3)
-
 count = 0
 for (iter in 1:length(participant_vec)){
   for(iter_eye in 1:2){
@@ -134,7 +132,6 @@ storage_matrix = matrix(NA, nrow = length(participant_vec)*2, ncol = 3)
 count = 0
 for (iter in 1:length(participant_vec)){
   for(iter_eye in 1:2){
-    
     count = count+1
     
     temp = pupils %>% filter(timeid == participant_vec[iter], eye == eyes[iter_eye])
@@ -173,13 +170,8 @@ scalars$beginning_slope = scalars$min_constriction/scalars$frame_min
 
 
 ```{r}
-
-# n_obs = pupils %>% group_by(timeid, eye) %>% mutate(completed_obs = max(centered, na.rm=TRUE)) %>% select(timeid, eye, completed_obs) %>% unique() %>% ungroup()
-
 participant_id = pupils$timeid %>% unique()
-
 storage_matrix = matrix(NA, nrow = length(participant_id)*2, ncol = 3)
-
 eyes = c("Left", "Right")
 
 count = 0
@@ -217,18 +209,27 @@ scalars$completed_obs = as.numeric(scalars$completed_obs)
 
 ```{r}
 scalars$subject_id = substr(scalars$timeid, 1, 7) ## participant id 
-scalars$time = substr(scalars$timeid, 8, 15) # time point
-
-
-pupils$subject_id = substr(pupils$timeid, 1, 7) ## participant id 
-pupils$time = substr(pupils$timeid, 8, 15) # time point
+scalars$prepost = substr(scalars$timeid, 8, 15) # time point
 
 # importing user_group data from cannabis_variables: A is occasional, B is non-user, C is daily
 
 user_groups = readRDS(here::here("data", "scalar_metrics_pupils.rds")) %>%
-  select(subject_id, user_type)
+  select(subject_id, user_type) %>%
+  distinct()
 
-scalars = left_join(scalars, user_groups)
-pupils = left_join(pupils, user_groups)
-
+scalars = left_join(scalars, user_groups, by = "subject_id") %>%
+  mutate(min_constriction = min_constriction * -1,
+         eye = factor(eye),
+         prepost = factor(prepost, levels = c("pre2", "post"))) %>%
+  select(subject_id, user_type, prepost, eye, min_constriction, AUC,
+         completed_obs, duration)
 ```
+
+
+
+## Save
+
+```{r}
+saveRDS(scalars, here::here("data", "scalar_metrics_pupils.rds"))
+```
+

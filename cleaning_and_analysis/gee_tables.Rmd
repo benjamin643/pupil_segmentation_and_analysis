@@ -44,7 +44,6 @@ scalars = readRDS(here::here("data", "scalar_metrics_pupils.rds"))
 # Gee models
 
 ```{r}
-
 ## Percent Constriction
 min_gee <- geeglm(min_constriction ~ eye + prepost*user_type,
                data = scalars, 
@@ -57,21 +56,6 @@ auc_gee <- geeglm(AUC ~ eye + prepost*user_type,
                data = scalars, 
                id = factor(subject_id), 
                family = gaussian,
-               corstr = "independence")
-
-## Auto-correlation
-# acf_gee <- geeglm(acf_original ~ eye + prepost*user_type,
-#                data = scalars, 
-#                id = factor(subject_id), 
-#                family = gaussian,
-#                corstr = "independence")
-
-
-# Completed Obs 
-obs_gee <- geeglm(cbind(completed_obs, duration-completed_obs) ~ eye + prepost*user_type,
-               data = scalars, 
-               id = factor(subject_id), 
-               family = binomial,
                corstr = "independence")
 ```
 
@@ -105,6 +89,13 @@ se_pre_non_min = sum(pre_non*se_min)
 se_pre_occ_min = sum(pre_occ*se_min)
 se_pre_daily_min = sum(pre_daily*se_min)
 
+mean_pre_non_min = str_c(round(mean_pre_non_min,2), 
+                         " (", round(se_pre_non_min,2), ")")
+mean_pre_occ_min = str_c(round(mean_pre_occ_min,2), 
+                         " (", round(se_pre_occ_min,2), ")")
+mean_pre_daily_min = str_c(round(mean_pre_daily_min,2), 
+                         " (", round(se_pre_daily_min,2), ")")
+
 ## Group Means at post event for table 3 - min. constriction
 mean_post_non_min = sum(post_non*coef_min)
 mean_post_occ_min = sum(post_occ*coef_min)
@@ -116,6 +107,13 @@ se_post_non_min = sum(post_non*se_min)
 se_post_occ_min = sum(post_occ*se_min)
 se_post_daily_min = sum(post_daily*se_min)
 
+
+mean_post_non_min = str_c(round(mean_post_non_min,2), 
+                         " (", round(se_post_non_min,2), ")")
+mean_post_occ_min = str_c(round(mean_post_occ_min,2), 
+                         " (", round(se_post_occ_min,2), ")")
+mean_post_daily_min = str_c(round(mean_post_daily_min,2), 
+                         " (", round(se_post_daily_min,2), ")")
 #######################################
 ############## auc means ################
 #######################################
@@ -133,6 +131,13 @@ se_pre_non_auc = sum(pre_non*se_auc)
 se_pre_occ_auc = sum(pre_occ*se_auc)
 se_pre_daily_auc = sum(pre_daily*se_auc)
 
+mean_pre_non_auc = str_c(round(mean_pre_non_auc,2), 
+                         " (", round(se_pre_non_auc,2), ")")
+mean_pre_occ_auc = str_c(round(mean_pre_occ_auc,2), 
+                         " (", round(se_pre_occ_auc,2), ")")
+mean_pre_daily_auc = str_c(round(mean_pre_daily_auc,2), 
+                         " (", round(se_pre_daily_auc,2), ")")
+
 ## Group Means at post event for table 3 -AUC
 mean_post_non_auc = sum(post_non*coef_auc)
 mean_post_occ_auc = sum(post_occ*coef_auc)
@@ -143,43 +148,18 @@ se_post_non_auc = sum(post_non*se_auc)
 se_post_occ_auc = sum(post_occ*se_auc)
 se_post_daily_auc = sum(post_daily*se_auc)
 
-
-## completed means
-coef_obs <- exp(summary(obs_gee)$coefficients[,1]) # coefficients from gee model
-se_obs <- exp(summary(obs_gee)$coefficients[,2]) # coefficients from gee model
-
-
-## Group Means at pre event for table 3 - completed observations
-mean_pre_non_obs = sum(pre_non*coef_obs)
-mean_pre_occ_obs = sum(pre_occ*coef_obs)
-mean_pre_daily_obs = sum(pre_daily*coef_obs)
-
-## Group SE at pre event for table 3 - completed observations
-se_pre_non_obs = sum(pre_non*se_obs)
-se_pre_occ_obs = sum(pre_occ*se_obs)
-se_pre_daily_obs = sum(pre_daily*se_obs)
-
-## Group Means at post event for table 3 - completed observations
-mean_post_non_obs = sum(post_non*coef_obs)
-mean_post_occ_obs = sum(post_occ*coef_obs)
-mean_post_daily_obs = sum(post_daily*coef_obs)
-
-## Group SE at post event for table 3 - completed observations
-se_post_non_obs = sum(post_non*se_obs)
-se_post_occ_obs = sum(post_occ*se_obs)
-se_post_daily_obs = sum(post_daily*se_obs)
-
-
+mean_post_non_auc = str_c(round(mean_post_non_auc,2), 
+                         " (", round(se_post_non_auc,2), ")")
+mean_post_occ_auc = str_c(round(mean_post_occ_auc,2), 
+                         " (", round(se_post_occ_auc,2), ")")
+mean_post_daily_auc = str_c(round(mean_post_daily_auc,2), 
+                         " (", round(se_post_daily_auc,2), ")")
 
 ###Contrast statements for differences Differences; Post - pre###
-
-
 non_dif = (post_non - pre_non)
 occ_dif = (post_occ - pre_occ)
 daily_dif = (post_daily - pre_daily)
 se_non_dif = sum(non_dif*se_min)
-
-
 
 non_occ_dif = occ_dif - non_dif 
 
@@ -189,8 +169,6 @@ non_daily_dif = daily_dif - non_dif
 
 ## Occ vs Daily
 occ_daily_dif =  daily_dif -occ_dif 
-
-
 ```
 
 # Functions for estimates and p-values of difference of differecences using contrast statements 
@@ -214,12 +192,6 @@ contrast_pair = function(gee_model, contrast_statment, df, lower_tail = FALSE, l
   
   return (list(contrast_statment_est, cont_p_value))
 }
-
-#  gee_model = min_gee
-# contrast_statment = non_daily_dif
-# df = 1
-# lower_tail = FALSE
-# log_p = FALSE
 
 
 #### Function for Overall difference of differences
@@ -288,28 +260,6 @@ colnames(row_auc) = c("estimate", "p-value", "estimate", "p-value", "estimate", 
 ```
 
 
-## Completed Obs results
-
-```{r}
-
-## Pairwise estimates for differences and p-values for table 4
-non_daily_results_obs = contrast_pair(obs_gee, non_daily_dif, 1) # dif_daily - dif_non
-
-non_occ_results_obs = contrast_pair(obs_gee, non_occ_dif, 1) #dif_occ - Dif_non
-
-occ_daily_results_obs = contrast_pair(obs_gee, occ_daily_dif, 1)#  dif_daily - Dif_occ 
-
-
-overall_obs = contrast_overal(obs_gee,non_dif, occ_dif, daily_dif, df = 3 )
-
-
-
-### Creating row for table 
-
-row_obs = t(as.matrix(c(unlist(non_daily_results_obs), unlist(non_occ_results_obs), unlist(occ_daily_results_obs), overall_obs)))
-colnames(row_auc) = c("estimate", "p-value", "estimate", "p-value", "estimate", "p-value", "overall")
-
-```
 
 ## Table 3 ; Estimated Differences ; Non vs Occ vs Daily 
 
@@ -319,10 +269,6 @@ colnames(row_auc) = c("estimate", "p-value", "estimate", "p-value", "estimate", 
 tab_differences =rbind(row_min_con, row_auc)
 
 rownames(tab_differences) = c("Percent Constriction", "AUC")
-
-
-
-
 
 kable(tab_differences,
       "html",
@@ -363,18 +309,6 @@ auc_gee_general <- geeglm(AUC ~ eye + prepost*group_general,
                id = factor(subject_id), 
                family = gaussian,
                corstr = "independence")
-## Autocorrelation
-# acf_gee_general <- geeglm(acf_original ~ eye + prepost*group_general,
-#                data = scalars, 
-#                id = factor(subject_id), 
-#                family = gaussian,
-#                corstr = "independence")
-## Completed Obs 
-obs_gee_general <- geeglm(cbind(completed_obs, duration - completed_obs) ~ eye + prepost*group_general,
-               data = scalars, 
-               id = factor(subject_id), 
-               family = binomial,
-               corstr = "independence")
 
 ```
 
@@ -390,9 +324,6 @@ se_min_gen <- summary(min_gee_general)$coefficients[,2] # SE from gee model for 
 coef_auc_gen <- summary(auc_gee_general)$coefficients[,1] # coefficients from gee model for min auc - general user
 se_auc_gen <- summary(auc_gee_general)$coefficients[,2] # SE from gee model for min auc - general user
 
-
-coef_obs_gen <- exp(summary(obs_gee_general)$coefficients[,1]) # coefficients from gee model for completed obs - general user
-se_obs_gen <- exp(summary(obs_gee_general)$coefficients[,2]) # SE from gee model for completed obs - general user
 
 # Int + right + post + general + post*general 
 
@@ -414,6 +345,16 @@ mean_post_use_gen_min = sum(post_use_gen*coef_min_gen)
 se_pre_use_gen_min = sum(pre_use_gen*se_min_gen)
 se_post_use_gen_min = sum(post_use_gen*se_min_gen)
 
+
+mean_pre_use_gen_min = str_c(round(mean_pre_use_gen_min, 2), 
+                             " (", round(se_pre_use_gen_min,2),
+                             ")")
+mean_post_use_gen_min = str_c(round(mean_post_use_gen_min, 2), 
+                             " (", round(se_post_use_gen_min,2),
+                             ")")
+
+
+
 ## Means for general user - auc
 mean_pre_use_gen_auc = sum(pre_use_gen*coef_auc_gen)
 mean_post_use_gen_auc = sum(post_use_gen*coef_auc_gen)
@@ -422,16 +363,12 @@ mean_post_use_gen_auc = sum(post_use_gen*coef_auc_gen)
 se_pre_use_gen_auc = sum(pre_use_gen*se_auc_gen)
 se_post_use_gen_auc = sum(post_use_gen*se_auc_gen)
 
-## Means for general user - Completed Obs
-mean_pre_use_gen_obs = sum(pre_use_gen*coef_obs_gen)
-mean_post_use_gen_obs = sum(post_use_gen*coef_obs_gen)
-
-## Means for general user - Completed Obs
-se_pre_use_gen_obs = sum(pre_use_gen*se_obs_gen)
-se_post_use_gen_obs = sum(post_use_gen*se_obs_gen)
-
-
-### contrast statments for Differences; ref(Post - pre) - comp(post - pre) ###
+mean_pre_use_gen_auc = str_c(round(mean_pre_use_gen_auc, 2), 
+                             " (", round(se_pre_use_gen_auc,2),
+                             ")")
+mean_post_use_gen_auc = str_c(round(mean_post_use_gen_auc, 2), 
+                             " (", round(se_post_use_gen_auc,2),
+                             ")")
 
 # Non vs general
 
@@ -488,41 +425,10 @@ colnames(row_min_con_gen) = c("estimate", "p-value")
 non_general_results_auc = contrast_pair(auc_gee_general, non_general_dif, 1) # Dif_non - dif_daily
  
 
-
-
-
 ### Creating row for table 
 
 row_auc_gen = t(as.matrix(unlist(non_general_results_auc)))
 colnames(row_auc_gen) = c("estimate", "p-value")
-
-```
-
-## ACF results
-
-```{r, eval = FALSE}
-## Pairwise estimates for differences and p-values for table 4
-non_general_results_acf = contrast_pair(acf_gee_general, non_occ_dif, 1) # Dif_non - dif_daily
- 
-
-### Creating row for table 
-
-row_acf_gen = t(as.matrix(unlist(non_general_results_acf)))
-colnames(row_acf_gen) = c("estimate", "p-value")
-
-```
-
-## OBS results
-
-```{r}
-## Pairwise estimates for differences and p-values for table 4
-non_general_results_obs = contrast_pair(obs_gee_general, non_general_dif, 1) # Dif_non - dif_daily
- 
-
-### Creating row for table 
-
-row_obs_gen = t(as.matrix(unlist(non_general_results_obs)))
-colnames(row_obs_gen) = c("estimate", "p-value")
 
 ```
 
@@ -546,18 +452,10 @@ colnames(row_min_con) = c("estimate", "p-value", "estimate", "p-value", "estimat
 row_auc = t(as.matrix(c(unlist(non_daily_results_auc), unlist(non_occ_results_auc), unlist(occ_daily_results_auc), row_auc_gen)))
 colnames(row_auc) = c("estimate", "p-value", "estimate", "p-value", "estimate", "p-value",  "estimate", "p-value")
 
-## full row for ACF
 
-# row_acf = t(as.matrix(c(unlist(non_daily_results_acf), unlist(non_occ_results_acf), unlist(occ_daily_results_acf), row_acf_gen)))
-# colnames(row_acf) = c("estimate", "p-value", "estimate", "p-value", "estimate", "p-value","estimate", "p-value")
+tab_differences = rbind(row_min_con, row_auc)
 
-## full row completed obs
-row_obs = t(as.matrix(c(unlist(non_daily_results_obs), unlist(non_occ_results_obs), unlist(occ_daily_results_obs), row_obs_gen)))
-colnames(row_obs) = c("estimate", "p-value", "estimate", "p-value", "estimate", "p-value",  "estimate", "p-value")
-
-tab_differences = rbind(row_min_con, row_auc, row_obs)
-
-rownames(tab_differences) = c("Percent Constriction", "AUC", "Completed Obs.")
+rownames(tab_differences) = c("Percent Constriction", "AUC")
 
 kable(tab_differences,
       "html",
@@ -569,49 +467,23 @@ kable(tab_differences,
 ```
 
 
-```{r, eval = FALSE}
-
-# ## Table 4 ; Estimated Differences ; Non vs general user 
-
-#tab_differences_gen = round(rbind(row_min_con_gen, row_auc_gen),4)
-
-tab_differences_gen = rbind(row_min_con_gen, row_auc_gen)
-
-rownames(tab_differences_gen) = c("Percent Constriction", "AUC")
-colnames(tab_differences_gen) = c("estimate" , "p-value")
-
-kable(tab_differences_gen,
-      "html",
-      booktabs = T,
-      align = c("r"),
-      caption = "Table 4") %>%
-  kable_classic("striped", full_width = F,
-                position = "center", font_size = 12) %>%
-  add_header_above(c("Scalar Feature"=1,"User vs. Non-User"=2 ))
-
-```
-
-
 
 # Table 2 - Adjusted means for pre and post 
 
 ```{r}
+non_user_means = c(mean_pre_non_min, mean_pre_non_auc, mean_post_non_min, mean_post_non_auc)
+
+occ_user_means = c(mean_pre_occ_min, mean_pre_occ_auc, mean_post_occ_min, mean_post_occ_auc)
+
+daily_user_means = c(mean_pre_daily_min, mean_pre_daily_auc, mean_post_daily_min, mean_post_daily_auc)
+
+gen_user_means = c(mean_pre_use_gen_min, mean_pre_use_gen_auc, mean_post_use_gen_min, mean_post_use_gen_auc)
 
 
-non_user_means = c(mean_pre_non_min, mean_pre_non_auc, mean_pre_non_obs, mean_post_non_min, mean_post_non_auc, mean_post_non_obs)
-
-occ_user_means = c(mean_pre_occ_min, mean_pre_occ_auc, mean_pre_occ_obs, mean_post_occ_min, mean_post_occ_auc, mean_post_occ_obs)
-
-daily_user_means = c(mean_pre_daily_min, mean_pre_daily_auc, mean_pre_daily_obs, mean_post_daily_min, mean_post_daily_auc, mean_post_daily_obs)
-
-gen_user_means = c(mean_pre_use_gen_min, mean_pre_use_gen_auc, mean_pre_use_gen_obs, mean_post_use_gen_min, mean_post_use_gen_auc, mean_post_use_gen_obs)
+means_table = as.matrix(rbind(non_user_means, occ_user_means, daily_user_means, gen_user_means))
 
 
-means_table = round(as.matrix(rbind(non_user_means, occ_user_means, daily_user_means, gen_user_means)),2)
-
-
-
-colnames(means_table) = c("Percent Constriction", "AUC", "Observations", "Percent Constriction", "AUC", "Observations")
+colnames(means_table) = c("Percent Constriction", "AUC", "Percent Constriction", "AUC")
 
 rownames(means_table) = c("non-user", 'occasional', 'daily', 'general user')
 
@@ -622,26 +494,6 @@ kable(means_table,
       caption = "Table 2") %>%
   kable_classic("striped", full_width = F,
                 position = "center", font_size = 12) %>%
-  add_header_above(c("User Group"=1,"Baseline"=3, "Post-Smoking" = 3))
-```
-
-```{r, eval = FALSE}
-
-# intercept + right + post + occasional + daily + post * occasional + post*daily
-
-coef2 <- summary(min_gee)$coefficients[,1] # coefficients from gee model
-cov2 <- summary(min_gee)$cov.scaled # scaled covariance from gee model
-
-contrast_statment = c(1, 1, 1, 1, 0, 1, 1)
-contrast_statment.m <- matrix(contrast_statment, byrow=T, 1, 7) # convert contrast statment to 1 by 7 matrix
-
-  contrast_statment_est <- contrast_statment.m%*%coef2 # get estimate of difference from contrast statement * coefficients
-
-  chisq.v <- t(contrast_statment_est)%*%solve(contrast_statment.m%*% cov2  %*%t(contrast_statment.m)) %*% contrast_statment_est # calculate chi-squared test statistic
-  
-  cont_p_value  <- pchisq(chisq.v, df, ncp=0, lower.tail = FALSE, log.p = FALSE) # calculate p value
-  cont_p_value = format.pval(cont_p_value, digits = 2)
-  
-  contrast_statment_est = round(contrast_statment_est, 3)
+  add_header_above(c("User Group"=1,"Baseline"=2, "Post-Smoking" = 2))
 ```
 
